@@ -36,8 +36,34 @@ const generateUrlFromField = (repositoryId, sdmField, query) => {
   return url;
 };
 
+/**
+ * Derives a folder name based on navigation segments in the OData request.
+ *
+ * If the request is a result of entity navigation, it constructs a folder name using the navigating entity's name
+ * and key values. If not navigating from another entity, it returns null.
+ *
+ * @param {Object} req - The OData request object.
+ * @returns {string|null} The derived folder name or null if not navigated from another entity.
+ */
+const deriveFolderNameFromNavigation = req => {
+  const pathSegments = req._.odataReq.getUriInfo().getPathSegments();
+  const lastNavigationSegment = [...pathSegments]
+    .reverse()
+    .find(segment => segment.getKind().includes('NAVIGATION'));
+
+  if (!lastNavigationSegment) {
+    return null;
+  }
+  const navigatingFromEntity =
+    pathSegments[pathSegments.indexOf(lastNavigationSegment) - 1];
+  const entityName = navigatingFromEntity.getEntitySet().getName();
+  const keys = navigatingFromEntity.getKeyPredicates().map(p => p._value);
+  return `${entityName}:${keys.join('-')}`;
+};
+
 module.exports = {
   extractPluginPropertiesFromElement,
   getColumnsMapping,
   generateUrlFromField,
+  deriveFolderNameFromNavigation,
 };

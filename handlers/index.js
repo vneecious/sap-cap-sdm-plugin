@@ -1,7 +1,12 @@
 const { randomUUID } = require('crypto');
-const { getColumnsMapping } = require('../util');
+const {
+  getColumnsMapping,
+  deriveFolderNameFromNavigation,
+} = require('../util');
 const CMISClientManager = require('../util/CMISClientManager');
-const convertODataQueryToCMIS = require('../converters/ConvertODataQueryToCMIS');
+const {
+  convertODataQueryToCMIS,
+} = require('../converters/ConvertODataQueryToCMIS');
 const convertCMISDocumentToOData = require('../converters/ConvertCMISDocumentToOData');
 const { getType } = require('mime');
 
@@ -38,12 +43,6 @@ const onRead = async req => {
         .join('&')
     : undefined;
 
-  let query = convertODataQueryToCMIS(
-    odataQuery,
-    req.target.elements,
-    req.cmisDocument,
-  );
-
   const options = {};
   if (req?._query?.$skip) {
     options.skipCount = Number(req._query.$skip);
@@ -52,7 +51,34 @@ const onRead = async req => {
     options.maxItems = Number(req._query.$top);
   }
 
-  const { results } = await cmisClient.cmisQuery(query, options);
+  const folderName = deriveFolderNameFromNavigation(req);
+  let results = [];
+  if (folderName) {
+    // SELECT DOCUMENTS FROM A SPECIFIC FOLDER
+    const { results: queryResults } = await cmisClient.cmisQuery(
+      `select * from cmis:folder where cmis:name = '${folderName}'`,
+    );
+    if (!queryResults.length) return results;
+
+    const [cmisFolder] = queryResults;
+    const { objects: getChildrenResults } = await cmisClient.getChildren(
+      cmisFolder.succinctProperties['cmis:objectId'],
+    );
+    results = getChildrenResults.map(r => r.object);
+  } else {
+    // SELECT ALL DOCUMENTS
+    let query = convertODataQueryToCMIS(
+      odataQuery,
+      req.target.elements,
+      req.cmisDocument,
+      folderName,
+    );
+    const { results: queryResults } = await cmisClient.cmisQuery(
+      query,
+      options,
+    );
+    results = queryResults;
+  }
 
   if (req.query?._streaming) {
     return onReadStream(req, results[0].succinctProperties);

@@ -4,6 +4,16 @@ const ODataParser = require('odata-v4-parser');
 
 let columnsMapping;
 const convertODataQueryToCMIS = (query, elements, keys) => {
+  const { columns, where, orderBy } = queryClauseBuilder(query, elements, keys);
+
+  let sql = `SELECT ${columns.join(', ')} FROM cmis:document`;
+  if (where.length) sql += ` WHERE ${whereClause.join(' AND ')}`;
+  if (orderBy.length) sql += ` ORDER BY ${orderByClause.join(', ')}`;
+
+  return sql;
+};
+
+const queryClauseBuilder = (query, elements, keys) => {
   const ast = query ? ODataParser.query(query).value.options : [];
   columnsMapping = getColumnsMapping(elements);
 
@@ -37,11 +47,11 @@ const convertODataQueryToCMIS = (query, elements, keys) => {
     }
   }
 
-  let sql = `SELECT ${selectedColumns.join(', ')} FROM cmis:document`;
-  if (whereClause.length) sql += ` WHERE ${whereClause.join(' AND ')}`;
-  if (orderByClause.length) sql += ` ORDER BY ${orderByClause.join(', ')}`;
-
-  return sql;
+  return {
+    columns: selectedColumns,
+    where: whereClause,
+    orderBy: orderByClause,
+  };
 };
 
 const convertFilterToSql = filterNode => {
@@ -121,4 +131,4 @@ const handleMethodCallExpression = (node, columnsMapping) => {
   }
 };
 
-module.exports = convertODataQueryToCMIS;
+module.exports = { convertODataQueryToCMIS, queryClauseBuilder };
