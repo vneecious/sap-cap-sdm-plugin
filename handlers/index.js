@@ -37,51 +37,42 @@ const beforeAll = req => {
 const onRead = async req => {
   const cmisClient = CMISClientManager.getClient();
 
-  const odataQuery = req._queryOptions
+  const { $skip, $top, _streaming } = req._query || {};
+
+  const options = {
+    ...(typeof $skip !== 'undefined' && { skipCount: Number($skip) }),
+    ...(typeof $top !== 'undefined' && { maxItems: Number($top) }),
+  };
+
+  const folderName = deriveFolderNameFromNavigation(req);
+
+  let keys = req.cmisDocument;
+  if (folderName) {
+    const { results: queryResults } = await cmisClient.cmisQuery(
+      `select * from cmis:folder where cmis:name = '${folderName}'`,
+    );
+    if (queryResults.length) {
+      const objectId = queryResults[0].succinctProperties['cmis:objectId'];
+      keys = { ...keys, 'sap:parentIds': [objectId] };
+    }
+  }
+
+  const odataQueryOptions = req._queryOptions
     ? Object.entries(req._queryOptions)
         .map(([key, value]) => `${key}=${value}`)
         .join('&')
     : undefined;
 
-  const options = {};
-  if (req?._query?.$skip) {
-    options.skipCount = Number(req._query.$skip);
-  }
-  if (req?._query?.$top) {
-    options.maxItems = Number(req._query.$top);
-  }
+  const query = convertODataQueryToCMIS(
+    odataQueryOptions,
+    req.target.elements,
+    keys,
+    folderName,
+  );
 
-  const folderName = deriveFolderNameFromNavigation(req);
-  let results = [];
-  if (folderName) {
-    // SELECT DOCUMENTS FROM A SPECIFIC FOLDER
-    const { results: queryResults } = await cmisClient.cmisQuery(
-      `select * from cmis:folder where cmis:name = '${folderName}'`,
-    );
-    if (!queryResults.length) return results;
-
-    const [cmisFolder] = queryResults;
-    const { objects: getChildrenResults } = await cmisClient.getChildren(
-      cmisFolder.succinctProperties['cmis:objectId'],
-    );
-    results = getChildrenResults.map(r => r.object);
-  } else {
-    // SELECT ALL DOCUMENTS
-    let query = convertODataQueryToCMIS(
-      odataQuery,
-      req.target.elements,
-      req.cmisDocument,
-      folderName,
-    );
-    const { results: queryResults } = await cmisClient.cmisQuery(
-      query,
-      options,
-    );
-    results = queryResults;
-  }
-
-  if (req.query?._streaming) {
-    return onReadStream(req, results[0].succinctProperties);
+  const { results } = await cmisClient.cmisQuery(query, options);
+  if (_streaming) {
+    return onReadStream(req, results[0]?.succinctProperties);
   }
 
   return convertCMISDocumentToOData(results, req.target.elements);
@@ -126,6 +117,9 @@ const onReadStream = async (req, cmisDocument) => {
  */
 const onCreate = async req => {
   const cmisClient = CMISClientManager.getClient();
+  const folderName = deriveFolderNameFromNavigation(req);
+
+  await onCreateFolder(req, folderName);
 
   const { cmisDocument } = req;
   if (!cmisDocument['cmis:name']) {
@@ -133,7 +127,9 @@ const onCreate = async req => {
   }
   const cmisResults = await cmisClient
     .withRequest(req.req)
-    .createDocument(cmisDocument['cmis:name']);
+    .createDocument(cmisDocument['cmis:name'], null, {
+      folderPath: folderName,
+    });
   return convertCMISDocumentToOData(cmisResults, req.target.elements);
 };
 
@@ -141,6 +137,27 @@ const onUpdate = async req => {
   const { data } = req;
   if (data.content) {
     return onUpdateContentStream(req);
+  }
+};
+
+/**
+ * Tries to create a specified folder. If the folder already exists, no action is taken.
+ * @param {Object} req - The request object.
+ * @param {string} folderName - The name of the folder to create.
+ */
+const onCreateFolder = async (req, folderName) => {
+  const cmisClient = CMISClientManager.getClient();
+
+  try {
+    await cmisClient.withRequest(req.req).createFolder(folderName);
+  } catch (err) {
+    const { exception } = err?.response?.data || {};
+
+    const NAME_CONSTRAINT_VIOLATION = 'nameConstraintViolation';
+    if (exception !== NAME_CONSTRAINT_VIOLATION) {
+      throw err;
+    }
+    // if folder already exists due to a 'nameConstraintViolation' exception, do nothing.
   }
 };
 

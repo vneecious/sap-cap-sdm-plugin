@@ -7,8 +7,8 @@ const convertODataQueryToCMIS = (query, elements, keys) => {
   const { columns, where, orderBy } = queryClauseBuilder(query, elements, keys);
 
   let sql = `SELECT ${columns.join(', ')} FROM cmis:document`;
-  if (where.length) sql += ` WHERE ${whereClause.join(' AND ')}`;
-  if (orderBy.length) sql += ` ORDER BY ${orderByClause.join(', ')}`;
+  if (where.length) sql += ` WHERE ${where.join(' AND ')}`;
+  if (orderBy.length) sql += ` ORDER BY ${orderBy.join(', ')}`;
 
   return sql;
 };
@@ -24,7 +24,13 @@ const queryClauseBuilder = (query, elements, keys) => {
   const keyEntries = Object.entries(keys);
   if (keyEntries.length) {
     const whereKeys = keyEntries
-      .map(([key, value]) => `${key} = '${value}'`)
+      .map(([key, value]) => {
+        if (Array.isArray(value)) {
+          return `ANY ${key} IN ('${value.join("','")}')`;
+        } else {
+          return `${key} = '${value}'`;
+        }
+      })
       .join(' AND ');
     whereClause.push(whereKeys);
   }
