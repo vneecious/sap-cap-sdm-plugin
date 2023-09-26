@@ -1,0 +1,31 @@
+{
+  "name": "sap-cap-sdm-plugin",
+  "version": "0.0.1",
+  "description": "",
+  "author": {
+    "name": "Vinícius Barrionuevo",
+    "url": "https://github.com/vneecious"
+  },
+  "license": "MIT",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vneecious/sap-cloud-cmis-client"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
+  "engines": {
+    "node": ">=16.0"
+  },
+  "keywords": [
+    "sap",
+    "cap",
+    "dms",
+    "sdm",
+    "plugin"
+  ],
+  "dependencies": {
+    "sap-cloud-cmis-client": "^1.3.1"
+  }
+}
