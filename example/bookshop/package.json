@@ -15,11 +15,22 @@
   "dependencies": {
     "@sap/cds": "^7",
     "express": "^4.17.1",
-    "passport": ">=0.4.1"
+    "passport": ">=0.4.1",
+    "sap-cap-sdm-plugin": "^1.0.0"
   },
   "scripts": {
     "genres": "cds serve test/genres.cds",
     "start": "cds-serve",
     "watch": "cds watch"
+  },
+  "cds": {
+    "requires": {
+      "sap-cap-sdm-plugin": {
+        "impl": "sap-cap-sdm-plugin",
+        "settings": {
+          "destination": "sdm-destination"
+        }
+      }
+    }
   }
 }
