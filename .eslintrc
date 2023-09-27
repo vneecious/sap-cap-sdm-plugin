@@ -21,7 +21,6 @@
   },
   "rules": {
     "no-console": "off",
-    "require-atomic-updates": "off",
-    "@typescript-eslint/no-var-requires": "off"
+    "require-atomic-updates": "off"
   }
 }
