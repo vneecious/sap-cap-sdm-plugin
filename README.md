@@ -56,10 +56,11 @@ service SampleService {
 
 After setting up, test your configuration to ensure everything is in order.
 
-## Features
+## Limitations
 
-- [x] Basic CRUD operations
-- [ ] Check-in Check-out flow for versioned repositories
-- [ ] Support for multiple entities
-- [ ] Thumbnail generation
-... and more features in the pipeline!
+Since this is a preliminary release, certain expected features available in SAP DMS are not yet supported. These include:
+
+- Repositories with `isVersionEnabled` set to true;
+- Repositories with `isThumbnailEnabled` set to true;
+- Massive upload;
+- Massive download;

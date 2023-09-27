@@ -34,6 +34,7 @@
     "@sap/cds": "^7"
   },
   "dependencies": {
+    "mime": "^3.0.0",
     "sap-cloud-cmis-client": "^1.3.1"
   },
   "devDependencies": {
