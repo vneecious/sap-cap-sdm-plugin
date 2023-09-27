@@ -1,16 +1,18 @@
 const cds = require('@sap/cds');
+
 const { CmisClient } = require('sap-cloud-cmis-client');
-const cmisClientManager = require('./util/CMISClientManager');
-const getSettings = require('./config/settings');
+
+const cmis = require('./lib/cmis-client');
+const getSettings = require('./lib/settings');
 const {
   onCreate,
   onRead,
   beforeAll,
   onUpdate,
   onDelete,
-} = require('./handlers');
+} = require('./lib/handlers');
 
-const services = [];
+const sdmServices = [];
 
 /**
  * Initialize plugin and define its handlers.
@@ -20,16 +22,17 @@ cds.once('served', initializePlugin);
 /**
  * Initializes the plugin by setting up the CMIS client and registering service handlers.
  */
-async function initializePlugin() {
+async function initializePlugin(services) {
   const { destination, repositoryId } = getSettings();
 
-  const cmisClient = new CmisClient({ destinationName: destination });
-  await cmisClient.getRepositories(repositoryId);
-  cmisClientManager.setClient(cmisClient);
+  cmis.client = new CmisClient({ destinationName: destination });
+  await cmis.client.getRepositories(repositoryId);
 
-  services.push(...extractServicesWithAnnotations(cds.services));
+  // Get all services that has any entity annotated with @Sdm.Entity
+  sdmServices.push(...extractServicesWithAnnotations(services));
 
-  for (let service of services) {
+  // Register our handlers for each one of those
+  for (let service of sdmServices) {
     registerServiceHandlers(service);
   }
 }
@@ -41,10 +44,11 @@ async function initializePlugin() {
  */
 function extractServicesWithAnnotations(services) {
   return Object.values(services)
-    .map(srv => ({
-      name: srv.name,
-      srv,
-      entities: Object.values(srv.entities).filter(
+    .filter(service => service instanceof cds.ApplicationService)
+    .map(service => ({
+      name: service.name,
+      srv: service,
+      entities: Object.values(service.entities).filter(
         entity => entity?.['@Sdm.Entity'],
       ),
     }))
@@ -65,32 +69,13 @@ const eventHandlersMap = {
 async function registerServiceHandlers(service) {
   const { srv, entities } = service;
 
-  for (let entity of entities) {
-    for (let [event, handler] of Object.entries(eventHandlersMap)) {
-      srv.on(event, entity.name, handler);
-      service = reorderHandlers(service);
+  srv.prepend(() => {
+    for (let entity of entities) {
+      for (let [event, handler] of Object.entries(eventHandlersMap)) {
+        srv.on(event, entity.name, handler);
+      }
+
+      srv.before('*', entity.name, beforeAll);
     }
-
-    srv.before('*', entity.name, beforeAll);
-  }
-}
-
-/**
- * Prioritize our custom handlers.
- *
- * Move the most recently defined handler to the front.
- * This ensures our handlers are invoked before any generic handlers.
- * This step is crucial because plugins load after generic handlers.
- * Failing to prioritize might lead CAP to throw errors due to the absence of a DB definition for our service.
- *
- * @param {Object} service - The service to reorder handlers for.
- * @returns {Object} The service with reordered handlers.
- */
-function reorderHandlers(service) {
-  const onHandlers = service.srv._handlers.on;
-  service.srv._handlers.on = [
-    onHandlers[onHandlers.length - 1],
-    ...onHandlers.slice(0, -1),
-  ];
-  return service;
+  });
 }
