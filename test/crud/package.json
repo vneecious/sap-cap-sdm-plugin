@@ -1,0 +1,10 @@
+{
+    "dependencies": {
+        "sap-cap-sdm-plugin": "../../"
+    },
+    "cds": {
+        "requires": {
+            "teste": "aqui"
+        }
+    }
+}
