@@ -1,0 +1,13 @@
+{
+    "dependencies": {
+        "sap-cap-sdm-plugin": "../../"
+    },
+    "cds": {
+        "requires": {
+            "cmis-client": {
+                "kind": "rest",
+                "impl": "../../srv/cmis/client"
+            }
+        }
+    }
+}

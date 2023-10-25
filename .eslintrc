@@ -3,8 +3,7 @@
   "env": {
     "es2022": true,
     "node": true,
-    "jest": true,
-    "mocha": true
+    "jest": true
   },
   "globals": {
     "SELECT": true,
@@ -21,6 +20,7 @@
   },
   "rules": {
     "no-console": "off",
+    "no-undef": "off",
     "require-atomic-updates": "off"
   }
 }

@@ -1,9 +1,5 @@
 const cds = require('@sap/cds');
-
-const { CmisClient } = require('sap-cloud-cmis-client');
-
-const cmis = require('./lib/cmis-client');
-const getSettings = require('./lib/settings');
+const { getSettings, getRepositoryData } = require('./lib/settings');
 const {
   onCreate,
   onRead,
@@ -23,10 +19,8 @@ cds.once('served', initializePlugin);
  * Initializes the plugin by setting up the CMIS client and registering service handlers.
  */
 async function initializePlugin(services) {
-  const { destination, repositoryId } = getSettings();
-
-  cmis.client = new CmisClient({ destinationName: destination });
-  await cmis.client.getRepositories(repositoryId);
+  getSettings();
+  await getRepositoryData();
 
   // Get all services that has any entity annotated with @Sdm.Entity
   sdmServices.push(...extractServicesWithAnnotations(services));
