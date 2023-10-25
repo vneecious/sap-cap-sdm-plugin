@@ -26,6 +26,13 @@ module.exports = async function () {
 
     const result =
       await ListRepositoriesApi.getRestV2Repositories().execute(destination);
+
+    if (
+      result.repoAndConnectionInfos &&
+      !Array.isArray(result.repoAndConnectionInfos)
+    ) {
+      result.repoAndConnectionInfos = [result.repoAndConnectionInfos];
+    }
     return result;
   });
 

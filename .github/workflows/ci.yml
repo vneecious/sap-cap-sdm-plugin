@@ -37,3 +37,5 @@ jobs:
       - run: cds v
       - run: npm run lint
       - run: npm run test
+        env:
+          VCAP_SERVICES: ${{ secrets.VCAP_SERVICES }}
