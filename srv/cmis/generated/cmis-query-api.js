@@ -12,15 +12,15 @@ const openapi_1 = require("@sap-cloud-sdk/openapi");
  * This API is part of the 'CMISQueryApi' service.
  */
 exports.CMISQueryApi = {
-    /**
-     * It provides a type-based query service for discovering objects that match speciﬁed criteria, by deﬁning a read-only projection of the CMIS data model into a relational view Through this relational view, queries may be performed via a simpliﬁed SQL SELECT statement.
-     * @param repositoryId - The repository to be used is identified using repository id
-     * @param queryParameters - Object containing the following keys: cmisSelector, q.
-     * @returns The request builder, use the `execute()` method to trigger the request.
-     */
-    getBrowserByRepositoryId: (repositoryId, queryParameters) => new openapi_1.OpenApiRequestBuilder('get', '/browser/{repositoryId}', {
-        pathParameters: { repositoryId },
-        queryParameters
-    })
+  /**
+   * It provides a type-based query service for discovering objects that match speciﬁed criteria, by deﬁning a read-only projection of the CMIS data model into a relational view Through this relational view, queries may be performed via a simpliﬁed SQL SELECT statement.
+   * @param repositoryId - The repository to be used is identified using repository id
+   * @param queryParameters - Object containing the following keys: cmisSelector, q.
+   * @returns The request builder, use the `execute()` method to trigger the request.
+   */
+  getBrowserByRepositoryId: (repositoryId, queryParameters) =>
+    new openapi_1.OpenApiRequestBuilder("get", "/browser/{repositoryId}", {
+      pathParameters: { repositoryId },
+      queryParameters,
+    }),
 };
-//# sourceMappingURL=cmis-query-api.js.map

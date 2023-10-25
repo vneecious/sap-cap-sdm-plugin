@@ -12,15 +12,19 @@ const openapi_1 = require("@sap-cloud-sdk/openapi");
  * This API is part of the 'AppendContentStreamApi' service.
  */
 exports.AppendContentStreamApi = {
-    /**
-     * Appends a content stream to the content stream of the document and refreshes this object afterwards. If the repository created a new version, this new document is returned. Otherwise the current document is returned
-     * @param repositoryId - The repository to be used is identified using repository id
-     * @param body - Request body.
-     * @returns The request builder, use the `execute()` method to trigger the request.
-     */
-    createBrowserRootByRepositoryId: (repositoryId, body) => new openapi_1.OpenApiRequestBuilder('post', '/browser/{repositoryId}/root/', {
+  /**
+   * Appends a content stream to the content stream of the document and refreshes this object afterwards. If the repository created a new version, this new document is returned. Otherwise the current document is returned
+   * @param repositoryId - The repository to be used is identified using repository id
+   * @param body - Request body.
+   * @returns The request builder, use the `execute()` method to trigger the request.
+   */
+  createBrowserRootByRepositoryId: (repositoryId, body) =>
+    new openapi_1.OpenApiRequestBuilder(
+      "post",
+      "/browser/{repositoryId}/root/",
+      {
         pathParameters: { repositoryId },
-        body
-    })
+        body,
+      }
+    ),
 };
-//# sourceMappingURL=append-content-stream-api.js.map

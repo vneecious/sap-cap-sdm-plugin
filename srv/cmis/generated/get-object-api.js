@@ -12,26 +12,35 @@ const openapi_1 = require("@sap-cloud-sdk/openapi");
  * This API is part of the 'GetObjectApi' service.
  */
 exports.GetObjectApi = {
-    /**
-     * It provides the information for the specified object in the root folder of repository where the object can be of folder, link, document type.
-     * @param repositoryId - The repository to be used is identified using repository id
-     * @param queryParameters - Object containing the following keys: cmisselector, objectId, filter, maxItems, skipCount, includeAllowableActions, includeRelationships, renditionFilter, succinct, includePolicyIds, includeACL.
-     * @returns The request builder, use the `execute()` method to trigger the request.
-     */
-    getBrowserRootByRepositoryId: (repositoryId, queryParameters) => new openapi_1.OpenApiRequestBuilder('get', '/browser/{repositoryId}/root', {
-        pathParameters: { repositoryId },
-        queryParameters
+  /**
+   * It provides the information for the specified object in the root folder of repository where the object can be of folder, link, document type.
+   * @param repositoryId - The repository to be used is identified using repository id
+   * @param queryParameters - Object containing the following keys: cmisselector, objectId, filter, maxItems, skipCount, includeAllowableActions, includeRelationships, renditionFilter, succinct, includePolicyIds, includeACL.
+   * @returns The request builder, use the `execute()` method to trigger the request.
+   */
+  getBrowserRootByRepositoryId: (repositoryId, queryParameters) =>
+    new openapi_1.OpenApiRequestBuilder("get", "/browser/{repositoryId}/root", {
+      pathParameters: { repositoryId },
+      queryParameters,
     }),
-    /**
-     * It provides the information for the specified object where the object can be of folder, link, document type.
-     * @param repositoryId - The repository to be used is identified using repository id
-     * @param directoryPath - The folder path to get the object.
-     * @param queryParameters - Object containing the following keys: cmisselector, objectId, filter, maxItems, skipCount, includeAllowableActions, includeRelationships, renditionFilter, succinct, includePolicyIds, includeACL.
-     * @returns The request builder, use the `execute()` method to trigger the request.
-     */
-    getBrowserRootByRepositoryIdAndDirectoryPath: (repositoryId, directoryPath, queryParameters) => new openapi_1.OpenApiRequestBuilder('get', '/browser/{repositoryId}/root/{directoryPath}', {
+  /**
+   * It provides the information for the specified object where the object can be of folder, link, document type.
+   * @param repositoryId - The repository to be used is identified using repository id
+   * @param directoryPath - The folder path to get the object.
+   * @param queryParameters - Object containing the following keys: cmisselector, objectId, filter, maxItems, skipCount, includeAllowableActions, includeRelationships, renditionFilter, succinct, includePolicyIds, includeACL.
+   * @returns The request builder, use the `execute()` method to trigger the request.
+   */
+  getBrowserRootByRepositoryIdAndDirectoryPath: (
+    repositoryId,
+    directoryPath,
+    queryParameters
+  ) =>
+    new openapi_1.OpenApiRequestBuilder(
+      "get",
+      "/browser/{repositoryId}/root/{directoryPath}",
+      {
         pathParameters: { repositoryId, directoryPath },
-        queryParameters
-    })
+        queryParameters,
+      }
+    ),
 };
-//# sourceMappingURL=get-object-api.js.map

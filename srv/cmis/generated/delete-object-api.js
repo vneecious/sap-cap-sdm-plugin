@@ -12,15 +12,19 @@ const openapi_1 = require("@sap-cloud-sdk/openapi");
  * This API is part of the 'DeleteObjectApi' service.
  */
 exports.DeleteObjectApi = {
-    /**
-     * It deletes the specified objects and all of it's properties present in a repository
-     * @param repositoryId - The repository to be used is identified using repository id
-     * @param body - Request body.
-     * @returns The request builder, use the `execute()` method to trigger the request.
-     */
-    createBrowserRootByRepositoryId: (repositoryId, body) => new openapi_1.OpenApiRequestBuilder('post', '/browser/{repositoryId}/root', {
+  /**
+   * It deletes the specified objects and all of it's properties present in a repository
+   * @param repositoryId - The repository to be used is identified using repository id
+   * @param body - Request body.
+   * @returns The request builder, use the `execute()` method to trigger the request.
+   */
+  createBrowserRootByRepositoryId: (repositoryId, body) =>
+    new openapi_1.OpenApiRequestBuilder(
+      "post",
+      "/browser/{repositoryId}/root",
+      {
         pathParameters: { repositoryId },
-        body
-    })
+        body,
+      }
+    ),
 };
-//# sourceMappingURL=delete-object-api.js.map
