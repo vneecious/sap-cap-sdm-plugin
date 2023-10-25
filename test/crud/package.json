@@ -4,7 +4,10 @@
     },
     "cds": {
         "requires": {
-            "teste": "aqui"
+            "cmis-client": {
+                "kind": "rest",
+                "impl": "../../srv/cmis/client"
+            }
         }
     }
 }

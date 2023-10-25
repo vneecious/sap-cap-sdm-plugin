@@ -178,7 +178,7 @@ type SdmAdminTypes.RepoAndConnectionInfos {
 };
 
 type SdmAdminTypes.ListARepo {
-  repoAndConnectionInfos : many SdmAdminTypes.RepoAndConnectionInfos;
+  repoAndConnectionInfos : array of SdmAdminTypes.RepoAndConnectionInfos;
 };
 
 type SdmAdminTypes.SyncRepos {

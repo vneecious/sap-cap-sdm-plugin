@@ -1,6 +1,6 @@
 const cds = require('@sap/cds');
-const getSettings = require('sap-cap-sdm-plugin/lib/settings');
-const { POST, GET } = cds.test().in(__dirname);
+const { getSettings, getRepositoryData } = require('../../lib/settings');
+const { POST, PUT, GET, DELETE } = cds.test().in(__dirname);
 
 // before running these tests you should do a bind-local to your xsuaa and destination services
 // eg.: `cf bind-local -path .env -service-names your-xsuaa your-destination-service`
@@ -27,6 +27,8 @@ describe('Sample API test', () => {
 
     cds.env.requires['sap-cap-sdm-plugin'].settings.repositoryId =
       repository.id;
+
+    await getRepositoryData(true);
   });
 
   afterAll(async () => {
@@ -41,17 +43,45 @@ describe('Sample API test', () => {
     expect(response.data?.['@odata.context']).toEqual('$metadata');
   });
 
-  test('get empty list of files', async () => {
-    const { data } = await GET('/crud-1/Files');
-    expect(data.value).toBeTruthy();
-    expect(data.value.length).toBe(0);
+  test('warmup', async () => {
+    const response = await GET(`/crud-1/Files`);
+    expect(response.status).toBe(200);
   });
 
+  let file;
   test('create an file in the root folder', async () => {
     const postResponse = await POST('/crud-1/Files', {
-      name: 'teste.csv',
+      name: `${Date.now()}-teste.csv`,
     });
+    expect(postResponse.status).toBe(201);
+    file = postResponse.data;
 
-    debugger;
+    const putResponse = await PUT(
+      `/crud-1/Files('${file.id}')/content`,
+      'lorem ipsum dolor',
+      {
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      },
+    );
+    expect(putResponse.status).toBe(204);
+  });
+
+  test('get object', async () => {
+    const response = await GET(`/crud-1/Files('${file.id}')`);
+    expect(response.status).toBe(200);
+    const { data: retrievedDocument } = response;
+    expect(retrievedDocument.id).toEqual(file.id);
+  });
+
+  test('download object content', async () => {
+    const response = await GET(`/crud-1/Files('${file.id}')/content`);
+    expect(response.status).toBe(200);
+  });
+
+  test('delete object', async () => {
+    const response = await DELETE(`/crud-1/Files('${file.id}')`);
+    expect(response.status).toBe(204);
   });
 });

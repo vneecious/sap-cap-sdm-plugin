@@ -24,9 +24,9 @@ module.exports = async function () {
   this.on('listRepositories', async req => {
     const destination = await loadDestination(req);
 
-    return await ListRepositoriesApi.getRestV2Repositories().execute(
-      destination,
-    );
+    const result =
+      await ListRepositoriesApi.getRestV2Repositories().execute(destination);
+    return result;
   });
 
   this.on('onboardARepository', async req => {
