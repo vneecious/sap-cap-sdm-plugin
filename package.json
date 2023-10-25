@@ -17,7 +17,9 @@
   },
   "main": "cds-plugin.js",
   "files": [
-    "lib"
+    "lib",
+    "srv",
+    "index.cds"
   ],
   "keywords": [
     "sap",
