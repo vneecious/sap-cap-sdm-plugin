@@ -1,5 +1,5 @@
 const cds = require('@sap/cds');
-const { getRepositoryData } = require('../../lib/settings');
+const { getRepositoryData } = require('../../../lib/settings');
 const { POST, PUT, GET, DELETE } = cds.test().in(__dirname);
 
 // before running these tests you should do a bind-local to your xsuaa and destination services
@@ -32,10 +32,10 @@ describe('Sample API test', () => {
   });
 
   afterAll(async () => {
-    // const { repositoryId } = getSettings();
-    // await POST('/sdm-plugin/admin/deleteARepository', {
-    //   id: repositoryId,
-    // });
+    const { repositoryId } = getSettings();
+    await POST('/sdm-plugin/admin/deleteARepository', {
+      id: repositoryId,
+    });
   });
 
   test('connected to test api', async () => {

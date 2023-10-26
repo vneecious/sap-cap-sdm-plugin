@@ -29,4 +29,4 @@ service APIService {
 }
 
 // workarount to serve admin service in cds.test
-using {SdmAdmin} from '../../../srv/admin/Admin';
+using {SdmAdmin} from '../../../../srv/admin/Admin';
