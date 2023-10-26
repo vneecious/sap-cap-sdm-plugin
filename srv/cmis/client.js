@@ -1,14 +1,6 @@
 const cds = require('@sap/cds');
 const convertObjectToCmisProperties = require('./converters/object-to-cmis-document');
-const { CreateFolderApi } = require('./generated/create-folder-api');
-const { CreateDocumentApi } = require('./generated/create-document-api');
-const { GetObjectApi } = require('./generated/get-object-api');
-const {
-  AppendContentStreamApi,
-} = require('./generated/append-content-stream-api');
-const { CMISQueryApi } = require('./generated/cmis-query-api');
-const { DownloadAFileApi } = require('./generated/download-a-file-api');
-const { DeleteObjectApi } = require('./generated/delete-object-api');
+const builder = require('./request-builders');
 const middlewares = require('./middlewares');
 const jsonToFormdata = require('./converters/json-to-formdata');
 
@@ -59,13 +51,14 @@ module.exports = class CmisClient extends cds.Service {
       ...optionalParameters,
     };
 
-    const api = CreateFolderApi;
-
     let request;
     if (!options?.folderPath) {
-      request = api.createBrowserRootByRepositoryId(repositoryId, requestBody);
+      request = builder.createBrowserRootByRepositoryId(
+        repositoryId,
+        requestBody,
+      );
     } else {
-      request = api.createBrowserRootByRepositoryIdAndDirectoryPath(
+      request = builder.createBrowserRootByRepositoryIdAndDirectoryPath(
         repositoryId,
         options.folderPath,
         requestBody,
@@ -117,13 +110,14 @@ module.exports = class CmisClient extends cds.Service {
     const requestBody = jsonToFormdata(bodyData);
     if (content) requestBody.append('content', content, name);
 
-    const api = CreateDocumentApi;
-
     let request;
     if (!options?.folderPath) {
-      request = api.createBrowserRootByRepositoryId(repositoryId, requestBody);
+      request = builder.createBrowserRootByRepositoryId(
+        repositoryId,
+        requestBody,
+      );
     } else {
-      request = api.createBrowserRootByRepositoryIdAndDirectoryPath(
+      request = builder.createBrowserRootByRepositoryIdAndDirectoryPath(
         repositoryId,
         options.folderPath,
         requestBody,
@@ -178,8 +172,10 @@ module.exports = class CmisClient extends cds.Service {
       ...optionalParameters,
     };
 
-    const api = GetObjectApi;
-    const request = api.getBrowserRootByRepositoryId(repositoryId, requestBody);
+    const request = builder.getBrowserRootByRepositoryId(
+      repositoryId,
+      requestBody,
+    );
 
     return this._buildRequest(request, config);
   }
@@ -218,8 +214,7 @@ module.exports = class CmisClient extends cds.Service {
     const requestBody = jsonToFormdata(bodyData);
     if (contentStream) requestBody.append('content', contentStream, filename);
 
-    const api = AppendContentStreamApi;
-    const request = api.createBrowserRootByRepositoryId(
+    const request = builder.createBrowserRootByRepositoryId(
       repositoryId,
       requestBody,
     );
@@ -267,8 +262,7 @@ module.exports = class CmisClient extends cds.Service {
       ...optionalParameters,
     };
 
-    const api = CMISQueryApi;
-    const request = api.getBrowserByRepositoryId(repositoryId, parameters);
+    const request = builder.getBrowserByRepositoryId(repositoryId, parameters);
 
     return this._buildRequest(request, config);
   }
@@ -300,9 +294,10 @@ module.exports = class CmisClient extends cds.Service {
       objectId,
     };
 
-    const api = DownloadAFileApi;
-
-    const request = api.getBrowserRootByRepositoryId(repositoryId, requestBody);
+    const request = builder.getBrowserRootByRepositoryId(
+      repositoryId,
+      requestBody,
+    );
 
     return this._buildRequest(request, config);
   }
@@ -333,8 +328,156 @@ module.exports = class CmisClient extends cds.Service {
       ...optionalParameters,
     };
 
-    const api = DeleteObjectApi;
+    const request = builder.createBrowserRootByRepositoryId(
+      repositoryId,
+      requestBody,
+    );
+
+    config.middleware = [
+      ...[].concat(config?.middleware || []).flat(),
+      middlewares.jsonToFormData,
+    ];
+
+    return this._buildRequest(request, config);
+  }
+
+  /**
+   * Create a private working copy (PWC) of the document.
+   * @param {string} repositoryId - Repository ID
+   * @param {string} objectId - The identiﬁer for the document version object that should be checked out.
+   * @param {{includeAllowableActions?: boolean;} & BaseCmisOptions} options - Options for the check-out operation.
+   * @returns {OpenApiRequestBuilder}
+   */
+  checkOut(repositoryId, objectId, options) {
+    const { config = {}, ...optionalParameters } = options || {};
+
+    const requestBody = {
+      cmisaction: 'checkOut',
+      objectId,
+      ...this.globalParameters,
+      ...optionalParameters,
+    };
+
+    const request = builder.createBrowserRootByRepositoryId(
+      repositoryId,
+      requestBody,
+    );
+
+    config.middleware = [
+      ...[].concat(config?.middleware || []).flat(),
+      middlewares.jsonToFormData,
+    ];
+
+    return this._buildRequest(request, config);
+  }
+
+  /**
+   * Checks in the document that was checked out as a private working copy (PWC).
+   *
+   * @param {string} repositoryId - Repository ID
+   * @param {string} objectId The identifier for the Private Working Copy.
+   * @param { { major?: boolean; checkinComment?: string; } & WriteOptions } options - Options for the check-in operation.
+   * @property options.major If `true` (default), the checked-in document object will be a major version. If `false`, the checked-in document object will be a minor version.
+   * @property options.checkinComment Textual comment associated with the given version. Defaults to "not set" if not provided.
+   * @returns {OpenApiRequestBuilder}
+   */
+  checkIn(
+    repositoryId,
+    objectId,
+    options = {
+      major: true,
+      checkinComment: 'no comments',
+    },
+  ) {
+    const { cmisProperties, config = {}, ...optionalParameters } = options;
+    const allCmisProperties = {
+      ...convertObjectToCmisProperties(cmisProperties || {}),
+    };
+
+    const requestBody = {
+      cmisaction: 'checkIn',
+      objectId,
+      ...allCmisProperties,
+      ...this.globalParameters,
+      ...optionalParameters,
+    };
+
+    const request = builder.createBrowserRootByRepositoryId(
+      repositoryId,
+      requestBody,
+    );
+
+    config.middleware = [
+      ...[].concat(config?.middleware || []).flat(),
+      middlewares.jsonToFormData,
+    ];
+
+    return this._buildRequest(request, config);
+  }
+
+  /**
+   * Reverses the eﬀect of a check-out
+   * Removes the Private Working Copy of the checked-out document, allowing other documents in the version series to be checked out again.
+   * If the private working copy has been created by createDocument, cancelCheckOut will delete the created document.
+   *
+   * @param {string} repositoryId - Repository ID
+   * @param {string} objectId - The identiﬁer of the Private Working Copy.
+   * @param {BaseCmisOptions} options - Additional options.
+   * @returns {OpenApiRequestBuilder}
+   */
+  cancelCheckOut(repositoryId, objectId, options) {
+    const { config = {}, ...optionalParameters } = options || {};
+
+    const requestBody = {
+      cmisaction: 'cancelCheckOut',
+      objectId,
+      ...this.globalParameters,
+      ...optionalParameters,
+    };
+
     const request = api.createBrowserRootByRepositoryId(
+      repositoryId,
+      requestBody,
+    );
+
+    config.middleware = [
+      ...[].concat(config?.middleware || []).flat(),
+      middlewares.jsonToFormData,
+    ];
+
+    return this._buildRequest(request, config);
+  }
+
+  /**
+   * Updates properties and secondary types of the specified object.
+   * All properties passed to updateProperties be updated to their new values.
+   * Properties that are passed without a value will be set to their default value or un-set if no default value is defined.
+   * All others property values remain untouched.
+   *
+   * @param {string} repositoryId - Repository ID
+   * @param {string} objectId - Object that should be updated
+   * @param {WriteOptions} options
+   * @returns {OpenApiRequestBuilder}
+   */
+  updateProperties(repositoryId, objectId, options) {
+    const {
+      cmisProperties,
+      config = {},
+      ...optionalParameters
+    } = options || {};
+    const allCmisProperties = {
+      ...convertObjectToCmisProperties(cmisProperties || {}),
+    };
+
+    const requestBody = {
+      cmisaction: 'update',
+      objectId,
+      ...allCmisProperties,
+      ...this.globalParameters,
+      ...optionalParameters,
+    };
+
+    const request = builder.createBrowserRootByRepositoryId(
       repositoryId,
       requestBody,
     );
