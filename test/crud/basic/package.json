@@ -1,12 +1,13 @@
 {
     "dependencies": {
-        "sap-cap-sdm-plugin": "../../"
+        "sap-cap-sdm-plugin": "../../../"
     },
     "cds": {
         "requires": {
-            "cmis-client": {
-                "kind": "rest",
-                "impl": "../../srv/cmis/client"
+            "sap-cloud-sdm-plugin": {
+                "settings": {
+                    "destination": "my-sdm-dest"
+                }
             }
         }
     }

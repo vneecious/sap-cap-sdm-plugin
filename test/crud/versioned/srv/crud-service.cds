@@ -1,4 +1,4 @@
-@path : '/crud-1'
+@path : '/crud-2'
 service APIService {
     @cds.persistence.skip
     @Sdm.Entity
@@ -28,5 +28,5 @@ service APIService {
     }
 }
 
-// // workarount to serve admin service in cds.test
-// using {SdmAdmin} from '../../../../srv/admin/Admin';
+// workarount to serve admin service in cds.test
+using {SdmAdmin} from '../../../../srv/admin/Admin';

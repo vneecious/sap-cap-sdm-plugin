@@ -13,7 +13,9 @@ const sdmServices = [];
 /**
  * Initialize plugin and define its handlers.
  */
-cds.once('served', initializePlugin);
+cds.once('served', () => {
+  if (cds.require?.['sap-cap-sdm-plugin']) initializePlugin;
+});
 
 /**
  * Initializes the plugin by setting up the CMIS client and registering service handlers.

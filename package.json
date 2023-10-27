@@ -101,6 +101,10 @@
       "cmis-client": {
         "kind": "rest",
         "impl": "srv/cmis/client"
+      },
+      "SdmAdmin": {
+        "kind": "odata-v4",
+        "model": "srv/admin"
       }
     }
   }

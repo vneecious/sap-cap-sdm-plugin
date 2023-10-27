@@ -1,5 +1,5 @@
 const cds = require('@sap/cds');
-const { getRepositoryData } = require('sap-cap-sdm-plugin/lib/settings');
+const { getRepositoryData } = require('../../../lib/settings');
 const { POST, PUT, GET, DELETE } = cds.test().in(__dirname);
 
 // before running these tests you should do a bind-local to your xsuaa and destination services
@@ -20,7 +20,7 @@ describe('Sample API test', () => {
           displayName: 'sdm-plugin',
           description: 'sdm-plugin',
           repositoryType: 'internal',
-          isVersionEnabled: 'false',
+          isVersionEnabled: 'true',
         },
       },
     );
@@ -39,25 +39,25 @@ describe('Sample API test', () => {
   });
 
   test('connected to test api', async () => {
-    const response = await GET('/crud-1');
+    const response = await GET('/crud-2');
     expect(response.data?.['@odata.context']).toEqual('$metadata');
   });
 
   test('warmup', async () => {
-    const response = await GET(`/crud-1/Files`);
+    const response = await GET(`/crud-2/Files`);
     expect(response.status).toBe(200);
   });
 
   let file;
   test('create an file in the root folder', async () => {
-    const postResponse = await POST('/crud-1/Files', {
+    const postResponse = await POST('/crud-2/Files', {
       name: `${Date.now()}-teste.txt`,
     });
     expect(postResponse.status).toBe(201);
     file = postResponse.data;
 
     const putResponse = await PUT(
-      `/crud-1/Files('${file.id}')/content`,
+      `/crud-2/Files('${file.id}')/content`,
       'lorem ipsum dolor',
       {
         headers: {
@@ -69,19 +69,19 @@ describe('Sample API test', () => {
   });
 
   test('get object', async () => {
-    const response = await GET(`/crud-1/Files('${file.id}')`);
+    const response = await GET(`/crud-2/Files('${file.id}')`);
     expect(response.status).toBe(200);
     const { data: retrievedDocument } = response;
     expect(retrievedDocument.id).toEqual(file.id);
   });
 
   test('download object content', async () => {
-    const response = await GET(`/crud-1/Files('${file.id}')/content`);
+    const response = await GET(`/crud-2/Files('${file.id}')/content`);
     expect(response.status).toBe(200);
   });
 
   test('delete object', async () => {
-    const response = await DELETE(`/crud-1/Files('${file.id}')`);
+    const response = await DELETE(`/crud-2/Files('${file.id}')`);
     expect(response.status).toBe(204);
   });
 });

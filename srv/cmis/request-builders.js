@@ -32,6 +32,12 @@ const getBrowserRootByRepositoryIdAndDirectoryPath = (
     },
   );
 
+const getBrowserByRepositoryId = (repositoryId, queryParameters) =>
+  new OpenApiRequestBuilder('get', '/browser/{repositoryId}', {
+    pathParameters: { repositoryId },
+    queryParameters,
+  });
+
 /**
  * POST to repository root
  * @param {*} repositoryId
@@ -67,6 +73,7 @@ const createBrowserRootByRepositoryIdAndDirectoryPath = (
 module.exports = {
   getBrowserRootByRepositoryId,
   getBrowserRootByRepositoryIdAndDirectoryPath,
+  getBrowserByRepositoryId,
   createBrowserRootByRepositoryId,
   createBrowserRootByRepositoryIdAndDirectoryPath,
 };
