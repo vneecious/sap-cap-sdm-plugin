@@ -1,41 +1,33 @@
 const cds = require('@sap/cds');
-const { getRepositoryData } = require('../../lib/settings');
+const { loadDestination } = require('../../../lib/util');
 const { POST, PUT, GET, DELETE } = cds.test().in(__dirname);
 
-// before running these tests you should do a bind-local to your xsuaa and destination services
-// eg.: `cf bind-local -path .env -service-names your-xsuaa your-destination-service`
-cds.env.requires['sap-cap-sdm-plugin'] = {
-  impl: 'sap-cap-sdm-plugin',
-  settings: {
-    destination: 'my-sdm-dest',
-  },
-};
-
+let repository, destination;
 describe('Sample API test', () => {
   beforeAll(async () => {
-    const { data: repository } = await POST(
-      '/sdm-plugin/admin/onboardARepository',
-      {
+    // Named it 'test-admin' instead of 'sdm-admin' to prevent interference with the plugin's execution
+    const srv = await cds.connect.to('test-admin', {
+      impl: '../../../srv/sdm/admin',
+    });
+    destination = await loadDestination();
+    repository = await srv
+      .onboardARepository({
         repository: {
           displayName: 'sdm-plugin',
           description: 'sdm-plugin',
           repositoryType: 'internal',
           isVersionEnabled: 'false',
         },
-      },
-    );
+      })
+      .execute(destination);
 
     cds.env.requires['sap-cap-sdm-plugin'].settings.repositoryId =
       repository.id;
-
-    await getRepositoryData(true);
   });
 
   afterAll(async () => {
-    // const { repositoryId } = getSettings();
-    // await POST('/sdm-plugin/admin/deleteARepository', {
-    //   id: repositoryId,
-    // });
+    const srv = await cds.connect.to('test-admin');
+    await srv.deleteARepository(repository.id).execute(destination);
   });
 
   test('connected to test api', async () => {
