@@ -33,7 +33,7 @@
     "test": "jest --silent --setupFiles dotenv/config --config jest.config.js"
   },
   "peerDependencies": {
-    "@sap/cds": "^7"
+    "@sap/cds": "^7.3.1"
   },
   "dependencies": {
     "@sap-cloud-sdk/core": "^1.54.2",
@@ -95,17 +95,5 @@
         "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
     ]
-  ],
-  "cds": {
-    "requires": {
-      "cmis-client": {
-        "kind": "rest",
-        "impl": "srv/cmis/client"
-      },
-      "SdmAdmin": {
-        "kind": "odata-v4",
-        "model": "srv/admin"
-      }
-    }
-  }
+  ]
 }
