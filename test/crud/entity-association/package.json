@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "sap-cap-sdm-plugin": "../../../"
+  },
+  "cds": {
+    "requires": {
+      "sap-cap-sdm-plugin": {
+        "settings": {
+          "destination": "my-sdm-dest"
+        }
+      }
+    }
+  }
+}

@@ -1,8 +1,5 @@
 const cds = require('@sap/cds');
 const { loadDestination } = require('../../lib/util');
-const { getRepositoryData } = require('../../lib/settings');
-
-cds.test('serve', 'srv/admin/Admin.cds');
 
 cds.env.requires['sap-cap-sdm-plugin'] = {
   impl: 'sap-cap-sdm-plugin',
@@ -15,25 +12,28 @@ describe('CMIS Client', () => {
   let repository, destination;
 
   beforeAll(async () => {
-    const srv = await cds.connect.to('SdmAdmin');
-    repository = await srv.onboardARepository({
-      repository: {
-        displayName: 'sdm-plugin',
-        description: 'sdm-plugin',
-        repositoryType: 'internal',
-        isVersionEnabled: 'false',
-      },
+    const srv = await cds.connect.to('sdm-admin', {
+      impl: '../../../srv/sdm/admin',
     });
+    destination = await loadDestination();
+    repository = await srv
+      .onboardARepository({
+        repository: {
+          displayName: 'sdm-plugin',
+          description: 'sdm-plugin',
+          repositoryType: 'internal',
+          isVersionEnabled: 'false',
+        },
+      })
+      .execute(destination);
 
     cds.env.requires['sap-cap-sdm-plugin'].settings.repositoryId =
       repository.id;
-
-    await getRepositoryData(true);
   });
 
   afterAll(async () => {
-    const srv = await cds.connect.to('SdmAdmin');
-    await srv.deleteARepository(repository.id);
+    const srv = await cds.connect.to('sdm-admin');
+    await srv.deleteARepository(repository.id).execute(destination);
   });
 
   beforeEach(async () => {
@@ -41,7 +41,9 @@ describe('CMIS Client', () => {
   });
 
   test('create a folder', async () => {
-    const srv = await cds.connect.to('cmis-client');
+    const srv = await cds.connect.to('cmis-client', {
+      impl: '../../../srv/cmis/client',
+    });
     const result = await srv
       .createFolder(repository.id, `${Date.now()}-testFolder`)
       .execute(destination);

@@ -1,5 +1,5 @@
 const cds = require('@sap/cds');
-const { POST, GET } = cds.test('serve', 'srv/admin/Admin.cds');
+const { loadDestination } = require('../../lib/util');
 
 // constants used in some tests
 const CONFIG_NAME = 'MyTestConfig';
@@ -14,160 +14,158 @@ cds.env.requires['sap-cap-sdm-plugin'] = {
 };
 
 describe('Admin Test', () => {
-  let repository, config;
+  let destination;
+  let repository;
+  let config;
+  let srv;
+
+  beforeEach(async () => {
+    destination = await loadDestination();
+    srv = await cds.connect.to('sdm-admin', {
+      impl: '../../../srv/sdm/admin',
+    });
+  });
 
   test('onboard a repository', async () => {
-    const response = await POST('/sdm-plugin/admin/onboardARepository', {
-      repository: {
-        displayName: 'sdm-plugin',
-        description: 'sdm-plugin',
-        repositoryType: 'internal',
-        isVersionEnabled: 'false',
-      },
-    });
-    repository = response.data;
-    expect(response.status).toBe(200);
+    const response = await srv
+      .onboardARepository({
+        repository: {
+          displayName: 'sdm-plugin',
+          description: 'sdm-plugin',
+          repositoryType: 'internal',
+          isVersionEnabled: 'false',
+        },
+      })
+      .execute(destination);
+    repository = response;
     expect(repository).toBeTruthy();
   });
 
   test('list repositories', async () => {
-    const response = await GET('/sdm-plugin/admin/listRepositories()');
-    expect(response.status).toBe(200);
+    const response = await srv.listRepositories().execute(destination);
+    expect(response).toHaveProperty('repoAndConnectionInfos');
   });
 
   test('count repositories', async () => {
-    const response = await GET('/sdm-plugin/admin/countRepositories()');
-    expect(response.status).toBe(200);
-    expect(response.data?.count).toBeTruthy();
+    const response = await srv.countRepositories().execute(destination);
+    expect(response).toHaveProperty('count');
   });
 
   test('get API Call Metrics', async () => {
-    const response = await GET('/sdm-plugin/admin/getAPICallMetrics()');
-    expect(response.status).toBe(200);
+    const response = await srv.getAPICallMetrics().execute(destination);
+    expect(response).toBeTruthy();
   });
 
   test('get storage metrics', async () => {
-    const response = await GET(
-      `/sdm-plugin/admin/getStorageMetrics(unit='MB',fromMonth='10',fromYear='2023')`,
-    );
-    expect(response.status).toBe(200);
+    const response = await srv
+      .getStorageMetrics('MB', '10', '2023')
+      .execute(destination);
+    expect(response).toBeTruthy();
   });
 
   // todo: check why it is returning HTTP 500
   test.skip('sync repositories', async () => {
-    const response = await GET('/sdm-plugin/admin/syncRepositories()');
-    expect(response.status).toBe(200);
+    const response = await srv.syncRepositories().execute(destination);
+    expect(response).toBeTruthy();
   });
 
   test('create Config', async () => {
-    const response = await POST('/sdm-plugin/admin/createConfig', {
-      body: {
+    const response = await srv
+      .createConfig({
         configName: CONFIG_NAME,
         configValue: 'value',
-      },
-    });
-    config = response.data;
-    expect(response.status).toBe(200);
-    expect(response.data.configName).toBe(CONFIG_NAME);
+      })
+      .execute(destination);
+    config = response;
+    expect(config.configName).toBe(CONFIG_NAME);
+  });
+
+  test('get Configs', async () => {
+    const response = await srv.getConfigs().execute(destination);
+    const c = response?.find(({ configName }) => configName === CONFIG_NAME);
+    expect(c).toBeTruthy();
+    config = c;
   });
 
   describe('Repository Specific', () => {
     beforeEach(() => expect(repository).toBeTruthy());
 
     test('fetch a repository', async () => {
-      const response = await GET(
-        `/sdm-plugin/admin/fetchARepository(id='${repository.id}')`,
-      );
-
-      const { repository: r } = response.data;
-
-      expect(response.status).toBe(200);
+      const response = await srv
+        .fetchARepository(repository.id)
+        .execute(destination);
+      const { repository: r } = response;
       expect(r.id).toBe(repository.id);
     });
 
     test('update a repository', async () => {
       const NEW_DESCRIPTION = 'updated description';
 
-      const response = await POST('/sdm-plugin/admin/updateARepository', {
-        id: repository.id,
-        body: { repository: { description: NEW_DESCRIPTION } },
-      });
-      repository = response.data;
-      expect(response.status).toBe(200);
+      const response = await srv
+        .updateARepository(repository.id, {
+          repository: { description: NEW_DESCRIPTION },
+        })
+        .execute(destination);
+      repository = response;
       expect(repository.description).toBe(NEW_DESCRIPTION);
     });
 
     test('sync a repository', async () => {
-      const response = await GET(
-        `/sdm-plugin/admin/syncARepository(id='${repository.id}')`,
-      );
-      expect(response.status).toBe(200);
-      expect(response.data.message).toBe('Sync successful');
+      const response = await srv
+        .syncARepository(repository.id)
+        .execute(destination);
+      expect(response.message).toBe('Sync successful');
     });
 
     // if repository is empty, there's no much to do here, that's why i'm skipping.
     test.skip('repository offboard', async () => {
-      const response = await POST(`/sdm-plugin/admin/repositoryOffBoard`, {
-        id: repository.id,
-      });
-      expect(response.status).toBe(200);
+      const response = await srv
+        .repositoryOffBoard(repository.id)
+        .execute(destination);
+      expect(response).toBeTruthy();
     });
 
     // same as above
     test.skip('repositoryOffBoardStatus', async () => {
-      const response = await GET(
-        `/sdm-plugin/admin/repositoryOffBoardStatus(id='${repository.id}')`,
-      );
-      expect(response.status).toBe(200);
+      const response = await srv
+        .repositoryOffBoardStatus(repository.id)
+        .execute(destination);
+      expect(response).toBeTruthy();
     });
 
     test('delete a repository', async () => {
-      const response = await POST('/sdm-plugin/admin/deleteARepository', {
-        id: repository.id,
-      });
-      expect(response.status).toBe(200);
+      const response = await srv
+        .deleteARepository(repository.id)
+        .execute(destination);
+      expect(response).toBeTruthy();
     });
   });
 
   describe('Config Specific', () => {
     beforeEach(() => expect(config).toBeTruthy());
 
-    test('get Configs', async () => {
-      const response = await GET('/sdm-plugin/admin/getConfigs()');
-      expect(response.status).toBe(200);
-
-      const c = response.data?.value?.find(
-        ({ configName }) => configName === CONFIG_NAME,
-      );
-
-      expect(c).toBeTruthy();
-    });
-
     test('update a config', async () => {
-      const response = await POST('/sdm-plugin/admin/updateConfig', {
-        id: config.id,
-        body: {
+      const response = await srv
+        .updateConfig(config.id, {
           id: config.id,
           configName: config.configName,
           configValue: 'updated value',
           serviceInstanceId: config.serviceInstanceId,
-        },
-      });
-      expect(response.status).toBe(200);
-      config = response.data;
+        })
+        .execute(destination);
+      config = response;
+      expect(response).toBeTruthy();
     });
 
     test('delete a config', async () => {
-      const response = await POST('/sdm-plugin/admin/deleteConfig', {
-        id: config.id,
-      });
-      expect(response.status).toBe(200);
+      const response = await srv.deleteConfig(config.id).execute(destination);
+      expect(response).toBeTruthy();
     });
   });
 
   // be careful to running this. it will delete all repositories in your sdm instance
   test('delete all repositories', async () => {
-    const response = await POST('/sdm-plugin/admin/deleteRepositories');
-    expect(response.status).toBe(200);
+    const response = await srv.deleteRepositories().execute(destination);
+    expect(response).toBeTruthy();
   });
 });

@@ -1,63 +1,55 @@
 const cds = require('@sap/cds');
-const { getRepositoryData } = require('../../lib/settings');
+const { loadDestination } = require('../../../lib/util');
 const { POST, PUT, GET, DELETE } = cds.test().in(__dirname);
 
-// before running these tests you should do a bind-local to your xsuaa and destination services
-// eg.: `cf bind-local -path .env -service-names your-xsuaa your-destination-service`
-cds.env.requires['sap-cap-sdm-plugin'] = {
-  impl: 'sap-cap-sdm-plugin',
-  settings: {
-    destination: 'my-sdm-dest',
-  },
-};
-
+let repository, destination;
 describe('Sample API test', () => {
   beforeAll(async () => {
-    const { data: repository } = await POST(
-      '/sdm-plugin/admin/onboardARepository',
-      {
+    // Named it 'test-admin' instead of 'sdm-admin' to prevent interference with the plugin's execution
+    const srv = await cds.connect.to('test-admin', {
+      impl: '../../../srv/sdm/admin',
+    });
+    destination = await loadDestination();
+    repository = await srv
+      .onboardARepository({
         repository: {
           displayName: 'sdm-plugin',
           description: 'sdm-plugin',
           repositoryType: 'internal',
           isVersionEnabled: 'false',
         },
-      },
-    );
+      })
+      .execute(destination);
 
     cds.env.requires['sap-cap-sdm-plugin'].settings.repositoryId =
       repository.id;
-
-    await getRepositoryData(true);
   });
 
   afterAll(async () => {
-    // const { repositoryId } = getSettings();
-    // await POST('/sdm-plugin/admin/deleteARepository', {
-    //   id: repositoryId,
-    // });
+    const srv = await cds.connect.to('test-admin');
+    await srv.deleteARepository(repository.id).execute(destination);
   });
 
   test('connected to test api', async () => {
-    const response = await GET('/crud-1');
+    const response = await GET('/crud');
     expect(response.data?.['@odata.context']).toEqual('$metadata');
   });
 
   test('warmup', async () => {
-    const response = await GET(`/crud-1/Files`);
+    const response = await GET(`/crud/Files`);
     expect(response.status).toBe(200);
   });
 
   let file;
   test('create an file in the root folder', async () => {
-    const postResponse = await POST('/crud-1/Files', {
+    const postResponse = await POST('/crud/Files', {
       name: `${Date.now()}-teste.txt`,
     });
     expect(postResponse.status).toBe(201);
     file = postResponse.data;
 
     const putResponse = await PUT(
-      `/crud-1/Files('${file.id}')/content`,
+      `/crud/Files('${file.id}')/content`,
       'lorem ipsum dolor',
       {
         headers: {
@@ -69,19 +61,19 @@ describe('Sample API test', () => {
   });
 
   test('get object', async () => {
-    const response = await GET(`/crud-1/Files('${file.id}')`);
+    const response = await GET(`/crud/Files('${file.id}')`);
     expect(response.status).toBe(200);
     const { data: retrievedDocument } = response;
     expect(retrievedDocument.id).toEqual(file.id);
   });
 
   test('download object content', async () => {
-    const response = await GET(`/crud-1/Files('${file.id}')/content`);
+    const response = await GET(`/crud/Files('${file.id}')/content`);
     expect(response.status).toBe(200);
   });
 
   test('delete object', async () => {
-    const response = await DELETE(`/crud-1/Files('${file.id}')`);
+    const response = await DELETE(`/crud/Files('${file.id}')`);
     expect(response.status).toBe(204);
   });
 });
