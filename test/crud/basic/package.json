@@ -4,7 +4,7 @@
     },
     "cds": {
         "requires": {
-            "sap-cloud-sdm-plugin": {
+            "sap-cap-sdm-plugin": {
                 "settings": {
                     "destination": "my-sdm-dest"
                 }
