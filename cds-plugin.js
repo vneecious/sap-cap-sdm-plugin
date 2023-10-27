@@ -1,5 +1,5 @@
 const cds = require('@sap/cds');
-const { getSettings, getRepositoryData } = require('./lib/settings');
+const { getSettings } = require('./lib/settings');
 const {
   onCreate,
   onRead,
@@ -7,14 +7,13 @@ const {
   onUpdate,
   onDelete,
 } = require('./lib/handlers');
-
 const sdmServices = [];
 
 /**
  * Initialize plugin and define its handlers.
  */
-cds.once('served', () => {
-  if (cds.require?.['sap-cap-sdm-plugin']) initializePlugin;
+cds.once('served', services => {
+  if (cds.env.requires?.['sap-cap-sdm-plugin']) initializePlugin(services);
 });
 
 /**
@@ -22,7 +21,8 @@ cds.once('served', () => {
  */
 async function initializePlugin(services) {
   getSettings();
-  await getRepositoryData();
+
+  cds.env.requires['cmis-client'] = { impl: `${__dirname}/srv/cmis/client` };
 
   // Get all services that has any entity annotated with @Sdm.Entity
   sdmServices.push(...extractServicesWithAnnotations(services));

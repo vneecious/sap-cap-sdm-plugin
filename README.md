@@ -81,10 +81,10 @@ This service follows the specs of [SAP Document Management Service, Integration 
 ### Usage:
 
 ```javascript
-const client = await cds.connect.to("cmis-client");
+const client = await cds.connect.to('cmis-client');
 // create a folder in root
 await client
-  .createFolder("your_repository_id", "folder_name")
+  .createFolder('your_repository_id', 'folder_name')
   .execute(destination);
 ```
 
@@ -97,15 +97,15 @@ There's also a service for admin tasks, like adding a new repository. This servi
 ### Usage:
 
 ```javascript
-const admin = await cds.connect.to("SdmAdmin");
+const admin = await cds.connect.to('sdm-admin');
 
 // add a new repository
 await admin.onboardARepository({
   repository: {
-    displayName: "sdm-plugin",
-    description: "sdm-plugin",
-    repositoryType: "internal",
-    isVersionEnabled: "false",
+    displayName: 'sdm-plugin',
+    description: 'sdm-plugin',
+    repositoryType: 'internal',
+    isVersionEnabled: 'false',
   },
 });
 ```
