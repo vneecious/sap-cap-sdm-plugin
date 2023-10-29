@@ -1,14 +1,20 @@
 const cds = require('@sap/cds');
 const { loadDestination } = require('../../../lib/util');
-const { POST, PUT, GET, DELETE } = cds.test().in(__dirname);
+const { GET } = cds.test().in(__dirname);
 
-let repository, destination;
+let repository, destination, file;
 describe('Sample API test', () => {
   beforeAll(async () => {
+    // Named it 'test-cmis-client' instead of 'cmis-client' to prevent interference with the plugin's execution
+    await cds.connect.to('test-cmis-client', {
+      impl: '../../../srv/cmis/client',
+    });
+
     // Named it 'test-admin' instead of 'sdm-admin' to prevent interference with the plugin's execution
     const srv = await cds.connect.to('test-admin', {
       impl: '../../../srv/sdm/admin',
     });
+
     destination = await loadDestination();
     repository = await srv
       .onboardARepository({
@@ -31,49 +37,38 @@ describe('Sample API test', () => {
   });
 
   test('connected to test api', async () => {
-    const response = await GET('/crud');
+    const response = await GET('/read');
     expect(response.data?.['@odata.context']).toEqual('$metadata');
   });
 
-  test('warmup', async () => {
-    const response = await GET(`/crud/Files`);
-    expect(response.status).toBe(200);
+  before(async () => {
+    const srv = await cds.connect.to('test-cmis-client');
+    file = await srv
+      .createDocument(repository.id, `${Date.now()}-test.txt`, 'lorem ipsum')
+      .execute(destination);
+    expect(file).toBeTruthy();
   });
 
-  let file;
-  test('create an file in the root folder', async () => {
-    const postResponse = await POST('/crud/Files', {
-      name: `${Date.now()}-teste.txt`,
-    });
-    expect(postResponse.status).toBe(201);
-    file = postResponse.data;
-
-    const putResponse = await PUT(
-      `/crud/Files('${file.id}')/content`,
-      'lorem ipsum dolor',
-      {
-        headers: {
-          'Content-Type': 'text/plain',
-        },
-      },
-    );
-    expect(putResponse.status).toBe(204);
+  test('get all', async () => {
+    const response = await GET(`/read/Files`);
+    expect(response.status).toBe(200);
   });
 
   test('get object', async () => {
-    const response = await GET(`/crud/Files('${file.id}')`);
+    const response = await GET(
+      `/read/Files('${file.succinctProperties['cmis:objectId']}')`,
+    );
     expect(response.status).toBe(200);
     const { data: retrievedDocument } = response;
-    expect(retrievedDocument.id).toEqual(file.id);
+    expect(retrievedDocument.id).toEqual(
+      file.succinctProperties['cmis:objectId'],
+    );
   });
 
   test('download object content', async () => {
-    const response = await GET(`/crud/Files('${file.id}')/content`);
+    const response = await GET(
+      `/read/Files('${file.succinctProperties['cmis:objectId']}')/url`,
+    );
     expect(response.status).toBe(200);
-  });
-
-  test('delete object', async () => {
-    const response = await DELETE(`/crud/Files('${file.id}')`);
-    expect(response.status).toBe(204);
   });
 });

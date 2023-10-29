@@ -1,6 +1,7 @@
 const cds = require('@sap/cds');
+const fs = require('fs');
 const { loadDestination } = require('../../../lib/util');
-const { POST, PUT, GET, DELETE } = cds.test().in(__dirname);
+const { PUT, GET } = cds.test().in(__dirname);
 
 let repository, destination;
 describe('Sample API test', () => {
@@ -9,6 +10,7 @@ describe('Sample API test', () => {
     const srv = await cds.connect.to('test-admin', {
       impl: '../../../srv/sdm/admin',
     });
+
     destination = await loadDestination();
     repository = await srv
       .onboardARepository({
@@ -31,49 +33,30 @@ describe('Sample API test', () => {
   });
 
   test('connected to test api', async () => {
-    const response = await GET('/crud');
+    const response = await GET('/entity-association');
     expect(response.data?.['@odata.context']).toEqual('$metadata');
   });
 
-  test('warmup', async () => {
-    const response = await GET(`/crud/Files`);
-    expect(response.status).toBe(200);
-  });
-
-  let file;
-  test('create an file in the root folder', async () => {
-    const postResponse = await POST('/crud/Files', {
-      name: `${Date.now()}-teste.txt`,
+  test('add avatar to user', async () => {
+    let response = await PUT('/entity-association/Users(1)/avatar', {
+      imageType: 'image/jpeg',
     });
-    expect(postResponse.status).toBe(201);
-    file = postResponse.data;
 
-    const putResponse = await PUT(
-      `/crud/Files('${file.id}')/content`,
-      'lorem ipsum dolor',
+    expect(response.status).toBe(200);
+
+    const filePath = `${__dirname}/avatar.svg`;
+    const fileStream = fs.createReadStream(filePath);
+
+    response = await PUT(
+      '/entity-association/Users(1)/avatar/content',
+      fileStream,
       {
         headers: {
-          'Content-Type': 'text/plain',
+          'Content-Type': 'image/svg+xml',
         },
       },
     );
-    expect(putResponse.status).toBe(204);
-  });
 
-  test('get object', async () => {
-    const response = await GET(`/crud/Files('${file.id}')`);
-    expect(response.status).toBe(200);
-    const { data: retrievedDocument } = response;
-    expect(retrievedDocument.id).toEqual(file.id);
-  });
-
-  test('download object content', async () => {
-    const response = await GET(`/crud/Files('${file.id}')/content`);
-    expect(response.status).toBe(200);
-  });
-
-  test('delete object', async () => {
-    const response = await DELETE(`/crud/Files('${file.id}')`);
     expect(response.status).toBe(204);
   });
 });

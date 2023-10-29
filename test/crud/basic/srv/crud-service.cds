@@ -1,5 +1,8 @@
-@path: '/crud-1'
-service APIService {
+/**
+ * Basic CRUD scenario
+ */
+@path: '/crud'
+service CrudAPI {
     @cds.persistence.skip
     @Sdm.Entity
     entity Files {
