@@ -67,6 +67,24 @@ describe('Sample API test', () => {
     expect(retrievedDocument.id).toEqual(file.id);
   });
 
+  test('get list of objects', async () => {
+    const response = await GET('/crud/Files');
+    expect(response.status).toBe(200);
+  });
+
+  test('count list of objects', async () => {
+    const response = await GET('/crud/Files/$count');
+    expect(response.status).toBe(200);
+    expect(response.data).toBeGreaterThan(0);
+  });
+
+  test('inline count list of objects', async () => {
+    const response = await GET('/crud/Files?$count=true');
+    expect(response.status).toBe(200);
+    expect(response.data?.['@odata.count']).toBeTruthy();
+    expect(response.data['@odata.count']).toBeGreaterThan(0);
+  });
+
   test('download object content', async () => {
     const response = await GET(`/crud/Files('${file.id}')/content`);
     expect(response.status).toBe(200);

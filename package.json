@@ -29,7 +29,8 @@
   ],
   "scripts": {
     "lint": "npx eslint .",
-    "test": "jest --silent --setupFiles dotenv/config --config jest.config.js"
+    "test": "jest --silent --setupFiles dotenv/config --config jest.config.js",
+    "test:debug": "jest --setupFiles dotenv/config --config jest.config.js"
   },
   "peerDependencies": {
     "@sap/cds": "^7.3.1"

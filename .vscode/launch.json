@@ -21,11 +21,11 @@
             "name": "Debug Jest Current File",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceFolder}/node_modules/.bin/jest",
+            "runtimeExecutable": "npm",
             "args": [
-                "${relativeFile}",
-                "--config",
-                "jest.config.js"
+                "run",
+                "test:debug",
+                "${relativeFile}"
             ],
             "envFile": "${workspaceFolder}/.env",
             "console": "integratedTerminal",
