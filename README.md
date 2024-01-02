@@ -31,7 +31,7 @@ Include the plugin in the `cds.requires` section of your `package.json`:
             "impl": "sap-cap-sdm-plugin",
             "settings": {
                 "destination": "<YOUR_SDM_DESTINATION_NAME>",
-                "repositoryId": "<YOUR_REPOSITORY_ID>" // Optional. Remove if you have only one repository.
+                "repositoryId": "<YOUR_REPOSITORY_ID>"
             }
         }
     }
