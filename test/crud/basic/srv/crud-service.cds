@@ -29,4 +29,14 @@ service CrudAPI {
                 path: 'cmis:creationDate'
             };
     }
+
+    /**
+     * THIS IS ONLY FOR TESTING PURPOSES. YOU DON'T NEED THIS
+     * ACTION
+     *
+     * This action was specifically implemented to address the
+     * following issue <https://github.com/vneecious/sap-cap-sdm-plugin/issues/12>
+     */
+    action createFile(file : Files);
+
 }
