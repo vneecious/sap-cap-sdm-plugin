@@ -94,4 +94,13 @@ describe('Sample API test', () => {
     const response = await DELETE(`/crud/Files('${file.id}')`);
     expect(response.status).toBe(204);
   });
+
+  test('invoke POST /Files from CQL', async () => {
+    const response = await POST('/crud/createFile', {
+      file: {
+        name: `${Date.now()}-teste.txt`,
+      },
+    });
+    expect(response.status).toBe(204);
+  });
 });
