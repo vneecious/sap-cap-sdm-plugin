@@ -115,4 +115,60 @@ describe('CMIS Client', () => {
     expect(result.status).toBe(200);
     expect(result.data).toBe('');
   });
+
+  test('create a document inside a folder', async () => {
+    const srv = await cds.connect.to('cmis-client');
+    const folder = await srv
+      .createFolder(repository.id, `${Date.now()}-testFolder`)
+      .execute(destination);
+
+    const result = await srv
+      .createDocument(
+        repository.id,
+        `${Date.now()}-test.txt`,
+        'lorem ipsum dolor',
+        {
+          folderPath: folder.succinctProperties['cmis:name'],
+        },
+      )
+      .execute(destination);
+
+    expect(result).toHaveProperty('succinctProperties');
+    expect(
+      result.succinctProperties['sap:parentIds'].find(
+        parentId => folder.succinctProperties['cmis:objectId'] === parentId,
+      ),
+    ).toBeTruthy();
+  });
+
+  test('create document inside a subfolder of a folder', async () => {
+    const srv = await cds.connect.to('cmis-client');
+    const folder = await srv
+      .createFolder(repository.id, `${Date.now()}-testFolder`)
+      .execute(destination);
+    const subfolder = await srv
+      .createFolder(repository.id, `${Date.now()}-testSubFolder`, {
+        folderPath: folder.succinctProperties['cmis:name'],
+      })
+      .execute(destination);
+
+    const result = await srv
+      .createDocument(
+        repository.id,
+        `${Date.now()}-test.txt`,
+        'lorem ipsum dolor',
+        {
+          folderPath: `${folder.succinctProperties['cmis:name']}/${subfolder.succinctProperties['cmis:name']}`,
+        },
+      )
+      .execute(destination);
+
+    expect(result).toHaveProperty('succinctProperties');
+    expect(
+      result.succinctProperties['sap:parentIds'].find(
+        parentId => subfolder.succinctProperties['cmis:objectId'] === parentId,
+      ),
+    ).toBeTruthy();
+  });
+  
 });

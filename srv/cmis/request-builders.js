@@ -1,5 +1,32 @@
 const { OpenApiRequestBuilder } = require('@sap-cloud-sdk/openapi');
 
+class CmisRequestBuilder extends OpenApiRequestBuilder {
+  constructor(method, pathPattern, parameters) {
+    super(method, pathPattern, parameters);
+  }
+
+  /**
+   * The original getPath encodeURIComponent for all path parameters.
+   * In this case, we want to keep the directoryPath as is.
+   */
+  getPath() {
+    const pathParameters = this.parameters?.pathParameters || {};
+    const placeholders = this.pathPattern.match(/{[^/?#{}]+}/g) || [];
+    return placeholders.reduce((path, placeholder) => {
+      const strippedPlaceholder = placeholder.slice(1, -1);
+      const parameterValue = pathParameters[strippedPlaceholder];
+
+      // keep directoryPath as is
+      const encodedValue =
+        strippedPlaceholder === 'directoryPath'
+          ? parameterValue
+          : encodeURIComponent(parameterValue);
+
+      return path.replace(placeholder, encodedValue);
+    }, this.pathPattern);
+  }
+}
+
 /**
  * GET from repository root
  * @param {*} repositoryId
@@ -7,7 +34,7 @@ const { OpenApiRequestBuilder } = require('@sap-cloud-sdk/openapi');
  * @returns
  */
 const getBrowserRootByRepositoryId = (repositoryId, queryParameters) =>
-  new OpenApiRequestBuilder('get', '/browser/{repositoryId}/root', {
+  new CmisRequestBuilder('get', '/browser/{repositoryId}/root', {
     pathParameters: { repositoryId },
     queryParameters,
   });
@@ -23,7 +50,7 @@ const getBrowserRootByRepositoryIdAndDirectoryPath = (
   directoryPath,
   queryParameters,
 ) =>
-  new OpenApiRequestBuilder(
+  new CmisRequestBuilder(
     'get',
     '/browser/{repositoryId}/root/{directoryPath}',
     {
@@ -33,7 +60,7 @@ const getBrowserRootByRepositoryIdAndDirectoryPath = (
   );
 
 const getBrowserByRepositoryId = (repositoryId, queryParameters) =>
-  new OpenApiRequestBuilder('get', '/browser/{repositoryId}', {
+  new CmisRequestBuilder('get', '/browser/{repositoryId}', {
     pathParameters: { repositoryId },
     queryParameters,
   });
@@ -45,7 +72,7 @@ const getBrowserByRepositoryId = (repositoryId, queryParameters) =>
  * @returns
  */
 const createBrowserRootByRepositoryId = (repositoryId, body) =>
-  new OpenApiRequestBuilder('post', '/browser/{repositoryId}/root', {
+  new CmisRequestBuilder('post', '/browser/{repositoryId}/root', {
     pathParameters: { repositoryId },
     body,
   });
@@ -61,7 +88,7 @@ const createBrowserRootByRepositoryIdAndDirectoryPath = (
   directoryPath,
   body,
 ) =>
-  new OpenApiRequestBuilder(
+  new CmisRequestBuilder(
     'post',
     '/browser/{repositoryId}/root/{directoryPath}',
     {
