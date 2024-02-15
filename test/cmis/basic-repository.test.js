@@ -110,7 +110,7 @@ describe('CMIS Client', () => {
       .execute(destination);
 
     expect(result).toHaveProperty('numItems');
-    expect(result.objects.length).toBe(1);
+    expect(result.numItems).toBe(1);
   });
 
   test('CMIS query with encoded filter', async () => {
@@ -128,7 +128,7 @@ describe('CMIS Client', () => {
       .execute(destination);
 
     expect(result).toHaveProperty('numItems');
-    expect(result.objects.length).toBe(1);
+    expect(result.numItems).toBe(1);
   });
 
   test('download a document', async () => {
