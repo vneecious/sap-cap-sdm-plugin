@@ -257,7 +257,7 @@ module.exports = class CmisClient extends cds.Service {
 
     const parameters = {
       cmisSelector: 'query',
-      q: encodeURIComponent(statement),
+      q: encodeURIComponent(decodeURIComponent(statement)),
       ...this.globalParameters,
       ...optionalParameters,
     };

@@ -85,6 +85,28 @@ describe('Sample API test', () => {
     expect(response.data['@odata.count']).toBeGreaterThan(0);
   });
 
+  test('query list of objects', async () => {
+    const response = await GET(
+      `/crud/Files?$filter=name eq '${file.name}'&$count=true`,
+    );
+    expect(response.status).toBe(200);
+    expect(response.data?.['@odata.count']).toBe(1);
+  });
+
+  test('query list of objects selecting limited number of fields', async () => {
+    const response = await GET(`/crud/Files?$select=id,name`);
+    expect(response.status).toBe(200);
+    expect(response.data.value[0].id).toBeTruthy();
+    expect(response.data.value[0].name).toBeTruthy();
+  });
+
+  test('query list of objects with encoded filter', async () => {
+    const filter = encodeURIComponent(`name eq '${file.name}'`);
+    const response = await GET(`/crud/Files?$filter=${filter}&$count=true`);
+    expect(response.status).toBe(200);
+    expect(response.data?.['@odata.count']).toBe(1);
+  });
+
   test('download object content', async () => {
     const response = await GET(`/crud/Files('${file.id}')/content`);
     expect(response.status).toBe(200);
