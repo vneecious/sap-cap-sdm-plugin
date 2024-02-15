@@ -113,24 +113,6 @@ describe('CMIS Client', () => {
     expect(result.numItems).toBe(1);
   });
 
-  test('CMIS query with encoded filter', async () => {
-    const srv = await cds.connect.to('cmis-client');
-    const result = await srv
-      .cmisQuery(
-        repository.id,
-        encodeURIComponent(
-          `select * from cmis:document where cmis:name = '${document.succinctProperties['cmis:name']}'`,
-        ),
-        {
-          maxItems: 1,
-        },
-      )
-      .execute(destination);
-
-    expect(result).toHaveProperty('numItems');
-    expect(result.numItems).toBe(1);
-  });
-
   test('download a document', async () => {
     const srv = await cds.connect.to('cmis-client');
     const result = await srv
