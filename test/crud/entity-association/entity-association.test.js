@@ -59,4 +59,14 @@ describe('Sample API test', () => {
 
     expect(response.status).toBe(204);
   });
+
+  test('get avatar data from user', async () => {
+    const response = await GET('/entity-association/Users(1)/avatar');
+    expect(response.status).toBe(200);
+  });
+
+  test('download avatar from user', async () => {
+    const response = await GET('/entity-association/Users(1)/avatar/content');
+    expect(response.status).toBe(200);
+  });
 });
