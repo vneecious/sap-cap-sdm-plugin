@@ -112,6 +112,11 @@ describe('Sample API test', () => {
     expect(response.status).toBe(200);
   });
 
+  test('read some specific property just in case', async () => {
+    const response = await GET(`/crud/Files('${file.id}')/name`);
+    expect(response.status).toBe(200);
+  });
+
   test('delete object', async () => {
     const response = await DELETE(`/crud/Files('${file.id}')`);
     expect(response.status).toBe(204);
