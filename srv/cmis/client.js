@@ -132,35 +132,14 @@ module.exports = class CmisClient extends cds.Service {
    *
    * @param {string} repositoryId - Repository ID
    * @param {string} objectId - Identifier of the object.
-   * @param { { filter?: string;maxItems?: number;skipCount?: number;orderBy?: string;includeAllowableActions?: boolean;includePathSegment?: boolean;includeRelationships?: 'none' | 'source' | 'target' | 'both';renditionFilter?: string;includePolicyIds?: boolean; } & BaseCmisOptions} options - Configuration options for the request.
-   * @property {string} [options.filter] - List of property query names to return (e.g., 'cmis:name,description').
-   *                                       For secondary type properties, follow the format: <secondaryTypeQueryName>.<propertyQueryName>.
-   * @property {number} [options.maxItems] - Maximum number of children to return.
-   * @property {number} [options.skipCount] - Number of initial results to skip.
-   * @property {string} [options.orderBy] - A comma-separated list of query names and an optional ascending modiﬁer "ASC" or descending modiﬁer "DESC" for each query name.
-   *                                        If the modiﬁer is not stated, "ASC" is assumed
    * @property {boolean} [options.includeAllowableActions] - Whether to include allowable actions for each child.
-   * @property {boolean} [options.includePathSegment] - Whether to include the path segment for each child.
-   * @property {"none" | "source" | "target" | "both"} [options.includeRelationships] - Scope of the relationships to include.
-   * @property {string} [options.renditionFilter] - Defines the renditions to be included in the response.
-   *                                               Examples for `renditionFilter`:
-   *                                               - `*`: Include all renditions.
-   *                                               - `cmis:thumbnail`: Include only thumbnails.
-   *                                               - `image/*`: Include all image renditions.
-   *                                               - `application/pdf,application/x-shockwave-flash`: Include web ready renditions.
-   *                                               - `cmis:none`: Exclude all renditions (Default).
-   * @property {boolean} [options.includePolicyIds] - Indicates whether the repository should return the IDs of policies applied to the object. If set to `true`, the repository is required to return these IDs.
    * @returns {OpenApiRequestBuilder}
    */
 getAllVersions(
   repositoryId,
   objectId,
   options = {
-    filter: '*',
-    includeAllowableActions: false,
-    includePathSegment: false,
-    includeRelationships: 'none',
-    includePolicyIds: false,
+    includeAllowableActions: true
   },
 ) {
   const { config = {}, ...optionalParameters } = options;
