@@ -88,6 +88,22 @@ describe('CMIS Client', () => {
     );
   });
 
+  test('set content stream', async () => {
+    const srv = await cds.connect.to('cmis-client');
+    const result = await srv
+      .setContentStream(
+        repository.id,
+        document.succinctProperties['cmis:objectId'],
+        document.succinctProperties['cmis:name'],
+        'updated content by setContentStream',
+      )
+      .execute(destination);
+
+    expect(result.succinctProperties['cmis:contentStreamLength']).not.toBe(
+      document.succinctProperties['cmis:contentStreamLength'],
+    );
+  });
+
   test('CMIS Query', async () => {
     const srv = await cds.connect.to('cmis-client');
     const result = await srv

@@ -127,6 +127,38 @@ module.exports = class CmisClient extends cds.Service {
     return this._buildRequest(request, config);
   }
 
+/**
+   * Retrieves the version details of a specified object within the CMIS repository.
+   *
+   * @param {string} repositoryId - Repository ID
+   * @param {string} objectId - Identifier of the object.
+   * @property {boolean} [options.includeAllowableActions] - Whether to include allowable actions for each child.
+   * @returns {OpenApiRequestBuilder}
+   */
+getAllVersions(
+  repositoryId,
+  objectId,
+  options = {
+    includeAllowableActions: true
+  },
+) {
+  const { config = {}, ...optionalParameters } = options;
+
+  const requestBody = {
+    objectId,
+    cmisselector: 'versions',
+    ...this.globalParameters,
+    ...optionalParameters,
+  };
+
+  const request = builder.getBrowserRootByRepositoryId(
+    repositoryId,
+    requestBody,
+  );
+
+  return this._buildRequest(request, config);
+}
+
   /**
    * Retrieves the details of a specified object within the CMIS repository.
    *
@@ -173,6 +205,48 @@ module.exports = class CmisClient extends cds.Service {
     };
 
     const request = builder.getBrowserRootByRepositoryId(
+      repositoryId,
+      requestBody,
+    );
+
+    return this._buildRequest(request, config);
+  }
+
+  /**
+   * Sets a content stream to the content stream of the document and refreshes this object afterwards.
+   * If the repository created a new version, this new document is returned. Otherwise, the current document is returned.
+   *
+   * @param {string} repositoryId - Repository ID
+   * @param {string} objectId - The ID of the document.
+   * @param {string} filename - The name of the file (e.g., filename.json).
+   * @param {any} contentStream - The content stream to be appended to the existing content.
+   * @param {BaseCmisOptions & { overwriteFlag?: boolean }} options - Optional parameters to modify the append behavior.
+   * @property options.overwriteFlag - Indicates whether content should be overwritten. Defaults to `true`.
+   *
+   * @returns {OpenApiRequestBuilder}
+   */
+  setContentStream(
+    repositoryId,
+    objectId,
+    filename,
+    contentStream,
+    options = {
+      overwriteFlag: true,
+    },
+  ) {
+    const { config = {}, ...optionalParameters } = options;
+
+    const bodyData = {
+      cmisaction: 'setContent',
+      objectId,
+      ...this.globalParameters,
+      ...optionalParameters,
+    };
+
+    const requestBody = jsonToFormdata(bodyData);
+    if (contentStream) requestBody.append('content', contentStream, filename);
+
+    const request = builder.createBrowserRootByRepositoryId(
       repositoryId,
       requestBody,
     );
@@ -435,7 +509,7 @@ module.exports = class CmisClient extends cds.Service {
       ...optionalParameters,
     };
 
-    const request = api.createBrowserRootByRepositoryId(
+    const request = builder.createBrowserRootByRepositoryId(
       repositoryId,
       requestBody,
     );
