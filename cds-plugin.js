@@ -23,6 +23,7 @@ async function initializePlugin(services) {
   getSettings();
 
   cds.env.requires['cmis-client'] = { impl: `${__dirname}/srv/cmis/client` };
+  cds.env.requires['sdm-admin'] = { impl: `${__dirname}/srv/sdm/admin` };
 
   // Get all services that has any entity annotated with @Sdm.Entity
   sdmServices.push(...extractServicesWithAnnotations(services));
