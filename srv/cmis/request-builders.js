@@ -27,6 +27,11 @@ class CmisRequestBuilder extends OpenApiRequestBuilder {
   }
 }
 
+const getBrowser = queryParameters =>
+  new CmisRequestBuilder('get', '/browser', {
+    queryParameters,
+  });
+
 /**
  * GET from repository root
  * @param {*} repositoryId
@@ -98,6 +103,7 @@ const createBrowserRootByRepositoryIdAndDirectoryPath = (
   );
 
 module.exports = {
+  getBrowser,
   getBrowserRootByRepositoryId,
   getBrowserRootByRepositoryIdAndDirectoryPath,
   getBrowserByRepositoryId,

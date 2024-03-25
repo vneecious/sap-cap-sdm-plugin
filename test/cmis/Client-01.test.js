@@ -40,10 +40,17 @@ describe('CMIS Client', () => {
     destination = await loadDestination();
   });
 
-  test('create a folder', async () => {
+  test('fetch repository', async () => {
     const srv = await cds.connect.to('cmis-client', {
       impl: '../../../srv/cmis/client',
     });
+
+    const result = await srv.fetchRepository().execute(destination);
+    expect(result).toHaveProperty(repository.id);
+  });
+
+  test('create a folder', async () => {
+    const srv = await cds.connect.to('cmis-client');
     const result = await srv
       .createFolder(repository.id, `${Date.now()}-testFolder`)
       .execute(destination);
@@ -102,6 +109,63 @@ describe('CMIS Client', () => {
     expect(result.succinctProperties['cmis:contentStreamLength']).not.toBe(
       document.succinctProperties['cmis:contentStreamLength'],
     );
+  });
+
+  test('add acl properties', async () => {
+    const srv = await cds.connect.to('cmis-client');
+    const result = await srv
+      .addACLProperty(
+        repository.id,
+        document.succinctProperties['cmis:objectId'],
+        [
+          {
+            addACEPrincipal: 'foo',
+            addACEPermission: ['cmis:read'],
+          },
+        ],
+      )
+      .execute(destination);
+
+    expect(result).toHaveProperty('aces');
+    const addedACE = result.aces.find(
+      ace => ace.principal.principalId === 'foo',
+    );
+    expect(addedACE).toBeTruthy();
+  });
+
+  test('get acl properties', async () => {
+    const srv = await cds.connect.to('cmis-client');
+    const result = await srv
+      .getACLProperty(
+        repository.id,
+        document.succinctProperties['cmis:objectId'],
+      )
+      .execute(destination);
+
+    expect(result).toHaveProperty('acl');
+    expect(result.acl.aces.length).toBe(2);
+  });
+
+  test('remove acl properties', async () => {
+    const srv = await cds.connect.to('cmis-client');
+    const result = await srv
+      .removeACLProperty(
+        repository.id,
+        document.succinctProperties['cmis:objectId'],
+        [
+          {
+            removeACEPrincipal: 'foo',
+            removeACEPermission: ['cmis:read'],
+          },
+        ],
+      )
+      .execute(destination);
+
+    expect(result).toHaveProperty('aces');
+    const deletedACE = result.aces.find(
+      ace => ace.principal.principalId === 'foo',
+    );
+    expect(deletedACE).toBeFalsy();
   });
 
   test('CMIS Query', async () => {
