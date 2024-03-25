@@ -1,5 +1,6 @@
 const cds = require('@sap/cds');
 const convertObjectToCmisProperties = require('./converters/object-to-cmis-document');
+const convertObjectToQueryArrayParams = require('./converters/object-to-query-array-params');
 const builder = require('./request-builders');
 const middlewares = require('./middlewares');
 const jsonToFormdata = require('./converters/json-to-formdata');
@@ -21,6 +22,136 @@ module.exports = class CmisClient extends cds.Service {
     };
   }
 
+  fetchRepository() {
+    const request = builder.getBrowser();
+    return this._buildRequest(request, {});
+  }
+
+  /**
+   * It adds a list of  Access Control Entries(ACE) to the Access Control List(ACL) of an object with permissions
+   * that can be of cmis:read, cmis:write, all."
+   *
+   * @param {string} repositoryId - Repository ID
+   * @param {string} objectId - Identifier of the object.
+   * @param {Array<{ addACEPrincipal: string, addACEPermission: Array<'cmis:read'|'cmis:write'|'all'>}>} addACEs - The list of ACEs to be added.
+   * @param {BaseCmisOptions & { ACLPropagation?: 'objectonly' | 'propagate' | 'repositorydetermined'; }} options
+   * @property options.ACLPropagation - Specifies how ACEs should be applied.
+   * - "objectonly": Apply ACEs only to the object without changing the ACLs of other objects.
+   * - "propagate": Apply ACEs by propagating the changes to all inheriting objects.
+   * - "repositorydetermined": (default) Let the repository determine the behavior.
+   * @returns {OpenApiRequestBuilder}
+   */
+  addACLProperty(repositoryId, objectId, addACEs, options = {}) {
+    const { config = {}, ...optionalParameters } = options || {};
+
+    const formattedAddACEs = convertObjectToQueryArrayParams(addACEs);
+
+    const requestBody = {
+      cmisaction: 'applyAcl',
+      objectId,
+      ...formattedAddACEs,
+      ...this.globalParameters,
+      ...optionalParameters,
+    };
+
+    const request = builder.createBrowserRootByRepositoryId(
+      repositoryId,
+      requestBody,
+    );
+
+    config.middleware = [
+      ...[].concat(config?.middleware || []).flat(),
+      middlewares.jsonToFormData,
+    ];
+
+    return this._buildRequest(request, config);
+  }
+
+  /**
+   * It removes a list of  Access Control Entries(ACE) from the Access Control List(ACL) of an object with permissions
+   *
+   * @param {string} repositoryId - Repository ID
+   * @param {string} objectId - Identifier of the object.
+   * @param {Array<{ removeACEPrincipal: string, removeACEPermission: Array<'cmis:read'|'cmis:write'|'all'>}>} removeACEs - The list of ACEs to be removed.
+   * @param {BaseCmisOptions & { ACLPropagation?: 'objectonly' | 'propagate' | 'repositorydetermined'; }} options
+   * @property options.ACLPropagation - Specifies how ACEs should be applied.
+   * - "objectonly": Apply ACEs only to the object without changing the ACLs of other objects.
+   * - "propagate": Apply ACEs by propagating the changes to all inheriting objects.
+   * - "repositorydetermined": (default) Let the repository determine the behavior.
+   * @returns {OpenApiRequestBuilder}
+   */
+  removeACLProperty(repositoryId, objectId, removeACEs, options = {}) {
+    const { config = {}, ...optionalParameters } = options || {};
+
+    const formattedRemoveACEs = convertObjectToQueryArrayParams(removeACEs);
+
+    const requestBody = {
+      cmisaction: 'applyAcl',
+      objectId,
+      ...formattedRemoveACEs,
+      ...this.globalParameters,
+      ...optionalParameters,
+    };
+
+    const request = builder.createBrowserRootByRepositoryId(
+      repositoryId,
+      requestBody,
+    );
+
+    config.middleware = [
+      ...[].concat(config?.middleware || []).flat(),
+      middlewares.jsonToFormData,
+    ];
+
+    return this._buildRequest(request, config);
+  }
+
+  /**
+   * Retrieves the Access Control List (ACL) applied to the specified object.
+   * The result can be expressed using only CMIS-defined permissions,
+   * or it may also include repository-specific permissions.
+   *
+   * @param {string} objectId - Identifier of the object for which the ACL should be fetched.
+   * @param {BaseCmisOptions & { filter?: string, includeAllowableActions?: boolean, redintionFilter?: string }} options - Configuration options for the request.
+   * @property {string} [options.filter] - List of property query names to return (e.g., 'cmis:name,amount'). For secondary type properties, use the pattern <secondaryTypeQueryName>.<propertyQueryName>.
+   * @property {boolean} [options.includeAllowableActions] - Indicates if allowable actions should be included.
+   * @property {boolean} [options.includeACL] - Indicates if the ACL should be included.
+   * @property {string} [options.renditionFilter] - Defines which renditions to include. Examples:
+   *   - `*`: All renditions.
+   *   - `cmis:thumbnail`: Only thumbnails.
+   *   - `image/*`: All image renditions.
+   *   - `application/pdf,application/x-shockwave-flash`: Web ready renditions.
+   *   - `cmis:none`: No renditions (Default).
+   *
+   * @returns {OpenApiRequestBuilder}
+   */
+  getACLProperty(
+    repositoryId,
+    objectId,
+    options = {
+      filter: '*',
+      includeAllowableActions: true,
+      includeACL: true,
+      redintionFilter: 'cmis:none',
+    },
+  ) {
+    const { config = {}, ...optionalParameters } = options;
+
+    const requestBody = {
+      objectId,
+      cmisselector: 'object',
+      ...this.globalParameters,
+      ...optionalParameters,
+      includeACL: true,
+    };
+
+    const request = builder.getBrowserRootByRepositoryId(
+      repositoryId,
+      requestBody,
+    );
+
+    return this._buildRequest(request, config);
+  }
   /**
    * Creates a folder object of the speciﬁed type in the speciﬁed location (options.folderPath).
    * If no folderPath is given, then creates it in the root folder
@@ -127,7 +258,7 @@ module.exports = class CmisClient extends cds.Service {
     return this._buildRequest(request, config);
   }
 
-/**
+  /**
    * Retrieves the version details of a specified object within the CMIS repository.
    *
    * @param {string} repositoryId - Repository ID
@@ -135,29 +266,29 @@ module.exports = class CmisClient extends cds.Service {
    * @property {boolean} [options.includeAllowableActions] - Whether to include allowable actions for each child.
    * @returns {OpenApiRequestBuilder}
    */
-getAllVersions(
-  repositoryId,
-  objectId,
-  options = {
-    includeAllowableActions: true
-  },
-) {
-  const { config = {}, ...optionalParameters } = options;
-
-  const requestBody = {
-    objectId,
-    cmisselector: 'versions',
-    ...this.globalParameters,
-    ...optionalParameters,
-  };
-
-  const request = builder.getBrowserRootByRepositoryId(
+  getAllVersions(
     repositoryId,
-    requestBody,
-  );
+    objectId,
+    options = {
+      includeAllowableActions: true,
+    },
+  ) {
+    const { config = {}, ...optionalParameters } = options;
 
-  return this._buildRequest(request, config);
-}
+    const requestBody = {
+      objectId,
+      cmisselector: 'versions',
+      ...this.globalParameters,
+      ...optionalParameters,
+    };
+
+    const request = builder.getBrowserRootByRepositoryId(
+      repositoryId,
+      requestBody,
+    );
+
+    return this._buildRequest(request, config);
+  }
 
   /**
    * Retrieves the details of a specified object within the CMIS repository.

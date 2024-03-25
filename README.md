@@ -64,7 +64,7 @@ After setting up, check your configuration to make sure everything is okay.
 
 ## Additional Features
 
-1. File URL
+### 1. File URL
 
 Obtain a direct URL to the document by specifying `type: 'link'` within the `@Sdm.Field` annotation.
 
@@ -72,13 +72,13 @@ Obtain a direct URL to the document by specifying `type: 'link'` within the `@Sd
     url: String @Sdm.Field : { type : 'link' };
 ```
 
-2. CMIS Client
+### 2. CMIS Client
 
 If the entity annotations don't meet your needs, you can use the CMIS Client to implement your own logic.
 
 This service follows the specs of [SAP Document Management Service, Integration Options - CMIS](https://api.sap.com//package/SAPDocumentManagementServiceIntegrationOptionCMISAPI/rest) from [SAP Business Accelerator Hub](https://api.sap.com/).
 
-### Usage:
+#### Usage:
 
 ```javascript
 const client = await cds.connect.to('cmis-client');
@@ -90,11 +90,52 @@ await client
 
 Check `test/cmis` for more examples.
 
-3. SDM Administrative Operations
+Avaiable API:
+ - [x] Add Access Control Entries: `getACLProperty`
+ - [x] Append Content Stream: `appendContentStream`
+ - [x] Cancel Check Out Document: `cancelCheckOut`
+ - [x] Check In Document: `checkIn`
+ - [x] Check Out Document: `checkOut`
+ - [x] CMIS Query: `cmisQuery`
+ - [x] Create Document: `createDocument`
+ - [] Create Document from Source: `TODO`
+ - [] Create Favorite: `TODO`
+ - [X] Create Folder: `createFolder`
+ - [] Create Link: `TODO`
+ - [] Create Secondary Type: `TODO`
+ - [] Create Share: `TODO`
+ - [X] Delete Object: `deleteObject`
+ - [] Delete Tree: `TODO`
+ - [X] Download a File: `downloadFile`
+ - [X] Fetch Repository: `fetchRepository`
+ - [] Generate Thumbnail: `TODO`
+ - [X] Get Access Control List: `getACLProperty`
+ - [] Get Allowable Actions: `TODO`
+ - [] Get Children: `TODO`
+ - [] Get Deleted Children: `TODO`
+ - [] Get Descendants: `TODO`
+ - [] Get Folder Tree: `TODO`
+ - [X] Get Object: `getObject`
+ - [] Get Parent: `TODO`
+ - [] Get Properties: `TODO`
+ - [] Get Type Children: `TODO`
+ - [] Get Type Definition: `TODO`
+ - [] Get Type Descendants: `TODO`
+ - [] Move Object: `TODO`
+ - [] Permanently Remove the Object: `TODO`
+ - [X] Remove Access Control Entries: `TODO`
+ - [] Restore Object: `TODO`
+ - [] Update Folder, Document, Link Object: `TODO`
+ - [X] Update Properties: `updateProperties`
+ - [] ZIP Content Creation: `TODO`
+ - [] ZIP Content Download: `TODO`
+ - [] ZIP Extract and Upload: `TODO`
+
+### 3. SDM Administrative Operations
 
 There's also a service for admin tasks, like adding a new repository. This service comes from the [Document Management Service, Integration Options - AdminAPI](https://api.sap.com/api/AdminAPI/overview).
 
-### Usage:
+#### Usage:
 
 ```javascript
 const admin = await cds.connect.to('sdm-admin');
