@@ -49,12 +49,13 @@ describe('CMIS Client', () => {
     expect(result).toHaveProperty(repository.id);
   });
 
+  let folder;
   test('create a folder', async () => {
     const srv = await cds.connect.to('cmis-client');
-    const result = await srv
+    folder = await srv
       .createFolder(repository.id, `${Date.now()}-testFolder`)
       .execute(destination);
-    expect(result).toHaveProperty('succinctProperties');
+    expect(folder).toHaveProperty('succinctProperties');
   });
 
   let document;
@@ -108,6 +109,22 @@ describe('CMIS Client', () => {
 
     expect(result.succinctProperties['cmis:contentStreamLength']).not.toBe(
       document.succinctProperties['cmis:contentStreamLength'],
+    );
+  });
+
+  test('create a document from source', async () => {
+    const srv = await cds.connect.to('cmis-client');
+    const result = await srv
+      .createDocumentFromSource(
+        repository.id,
+        document.succinctProperties['cmis:objectId'],
+        folder.succinctProperties['cmis:objectId'],
+      )
+      .execute(destination);
+
+    expect(result).toHaveProperty('succinctProperties');
+    expect(result.succinctProperties['sap:parentIds']).toContain(
+      folder.succinctProperties['cmis:objectId'],
     );
   });
 
@@ -190,7 +207,7 @@ describe('CMIS Client', () => {
       .execute(destination);
 
     expect(result).toHaveProperty('numItems');
-    expect(result.numItems).toBe(1);
+    expect(result.results.length).toBe(1);
   });
 
   test('download a document', async () => {

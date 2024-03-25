@@ -98,7 +98,7 @@ Avaiable API:
  - [x] Check Out Document: `checkOut`
  - [x] CMIS Query: `cmisQuery`
  - [x] Create Document: `createDocument`
- - [ ] Create Document from Source: `TODO`
+ - [x] Create Document from Source: `createDocumentFromSource`
  - [ ] Create Favorite: `TODO`
  - [X] Create Folder: `createFolder`
  - [ ] Create Link: `TODO`

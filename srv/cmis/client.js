@@ -259,6 +259,43 @@ module.exports = class CmisClient extends cds.Service {
   }
 
   /**
+   * Creates a copy of a document from the source folder into a targeted folder without changing any properties of the document.
+   *
+   * @param {string} repositoryId - The Repository ID.
+   * @param {string} sourceId - The Object ID that will be copied.
+   * @param {string} targetFolderId - The Folder ID where the new object will be created.
+   * @param {WriteOptions} options - Options for document creation.
+   *
+   * @returns {OpenApiRequestBuilder}
+   */
+  createDocumentFromSource(
+    repositoryId,
+    sourceId,
+    targetFolderId,
+    options = {},
+  ) {
+    const { config = {}, ...optionalParameters } = options;
+
+    const bodyData = {
+      cmisaction: 'createDocumentFromSource',
+      objectId: targetFolderId,
+      sourceId,
+      ...this.globalParameters,
+      ...optionalParameters,
+    };
+
+    const requestBody = jsonToFormdata(bodyData);
+
+    let request;
+    request = builder.createBrowserRootByRepositoryId(
+      repositoryId,
+      requestBody,
+    );
+
+    return this._buildRequest(request, config);
+  }
+
+  /**
    * Retrieves the version details of a specified object within the CMIS repository.
    *
    * @param {string} repositoryId - Repository ID
